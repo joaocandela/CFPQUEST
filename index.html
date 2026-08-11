@@ -957,13 +957,31 @@ function renderChat(){
         drawChat(CHATMSGS);});}
     drawChat(CHATMSGS.length?CHATMSGS:[{name:"Equipe CFP Quest",text:"👋 Bem-vindo! Conectando ao chat online...",time:Date.now()}]);
   } else { drawChat(getChatLocal()); }
+}function sendMsg(){
+  const inp = document.getElementById('chat-in');
+  const tx = inp.value.trim();
+  if(!tx) return;
+  inp.value = '';
+  
+  const msg = {name: S.name, email: S.email, avatar: (S.avatar ?? null), custom: S.custom || null, text: tx, time: Date.now()};
+  S.chatted = (S.chatted || 0) + 1;
+  save();
+  checkBadges();
+
+  if(FB.ready){ 
+    FB.addDoc(FB.collection(FB.db, 'chat'), msg)
+      .then(() => {
+        // Opcional: se o seu onSnapshot demorar um pouco, você pode forçar um render local ou rolar para baixo
+      })
+      .catch(e => toast('Falha ao enviar')); 
+  } else { 
+    const msgs = getChatLocal();
+    msgs.push(msg);
+    localStorage.setItem('cfpquest_chat', JSON.stringify(msgs));
+    renderChat(); 
+  }
 }
-function sendMsg(){const inp=document.getElementById('chat-in');const tx=inp.value.trim();if(!tx)return;inp.value='';
-  const msg={name:S.name,email:S.email,avatar:(S.avatar??null),custom:S.custom||null,text:tx,time:Date.now()};
-  S.chatted=(S.chatted||0)+1;save();checkBadges();
-  if(FB.ready){ FB.addDoc(FB.collection(FB.db,'chat'),msg).catch(e=>toast('Falha ao enviar')); }
-  else { const msgs=getChatLocal();msgs.push(msg);localStorage.setItem('cfpquest_chat',JSON.stringify(msgs));renderChat(); }
-}
+
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* DUELO */
