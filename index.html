@@ -48,11 +48,16 @@
   .avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
   .avatar-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s;background:#eee;}
   .avatar-grid img.sel{border-color:var(--verde);transform:scale(1.08);box-shadow:0 4px 12px rgba(88,204,2,.4);}
-  .av img,.fav img,.prof-head .av img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+  .av img,.fav img,.prof-head .av img,.hero-av img{width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:center;display:block;}
   .prof-avatar-btn{position:absolute;bottom:2px;right:calc(50% - 46px);background:#fff;border:2px solid var(--verde);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);}
   .hero-card{background:linear-gradient(135deg,var(--azul),var(--azul2));color:#fff;border-radius:20px;padding:18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;}
   .hero-card .goal{flex:1;}.hero-card h3{font-size:17px;}.hero-card p{font-size:13px;opacity:.85;margin-top:3px;}
   .hero-av{width:60px;height:60px;border-radius:50%;overflow:hidden;background:#fff;flex-shrink:0;border:3px solid rgba(255,255,255,.5);}
+  #crop-stage{position:relative;width:280px;height:280px;margin:0 auto;border-radius:16px;overflow:hidden;background:#222;touch-action:none;}
+  #crop-canvas{position:absolute;inset:0;cursor:grab;}
+  #crop-ring{position:absolute;inset:0;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.45) inset;border-radius:16px;}
+  #crop-ring::after{content:'';position:absolute;left:20px;top:20px;right:20px;bottom:20px;border:2px dashed rgba(255,255,255,.9);border-radius:50%;}
+  #crop-zoom{accent-color:var(--verde);}
   .approvebar{height:12px;background:rgba(255,255,255,.25);border-radius:10px;margin-top:10px;overflow:hidden;}
   .approvebar>i{display:block;height:100%;background:var(--amarelo);border-radius:10px;transition:width .6s;}
   .sec-title{font-size:13px;font-weight:800;color:var(--cinza2);text-transform:uppercase;letter-spacing:1px;margin:6px 0 12px;}
@@ -159,20 +164,6 @@
   #nav button small{font-size:9px;font-weight:700;}#nav button.active{color:var(--verde);}
   .toast{position:absolute;top:70px;left:50%;transform:translateX(-50%) translateY(-200%);background:var(--azul);color:#fff;padding:12px 20px;border-radius:30px;font-weight:800;font-size:13px;z-index:40;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:transform .4s,opacity .3s;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;}
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible;}
-  /* CONFETTI (nova melhoria) */
-  .confetti{position:absolute;inset:0;pointer-events:none;z-index:50;overflow:hidden;}
-  .confetti i{position:absolute;top:-20px;width:8px;height:14px;opacity:.9;animation:confetti-fall 1.6s linear forwards;border-radius:2px;}
-  @keyframes confetti-fall{to{transform:translateY(115%) rotate(560deg);opacity:.15;}}
-  /* AJUSTE DE FOTO (nova melhoria) */
-  #photo{background:#fff;}
-  .photo-preview-wrap{width:220px;height:220px;border-radius:50%;overflow:hidden;margin:20px auto;border:5px solid var(--verde);box-shadow:0 10px 26px rgba(0,0,0,.18);background:#eee;position:relative;}
-  .photo-preview-wrap img{position:absolute;top:50%;left:50%;transform-origin:center;max-width:none;}
-  .range-row{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;margin:12px 0;font-weight:700;color:var(--azul);font-size:13px;}
-  .range-row input[type=range]{width:100%;}
-  /* CONFIG DE SOM (nova melhoria) */
-  .settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:2px solid var(--cinza);font-weight:700;color:var(--texto);font-size:14px;}
-  .settings-row:last-child{border-bottom:none;}
-  .settings-row input[type=range]{width:120px;}
   .center-col{align-items:center;justify-content:center;text-align:center;}
   .big-emoji{font-size:70px;margin-bottom:6px;}
   h2.done-title{color:var(--azul);font-size:26px;margin:8px 0;}
@@ -224,12 +215,12 @@
     <h1>CFP Quest</h1>
     <div class="tag">Sua aprovação no CFP®, no seu ritmo. Você escolhe quantos minutos estuda por dia.</div>
     <div class="card">
-      <div class="field"><label>Seu nome</label><input id="in-name" placeholder="Ex.: João Paulo" value=""></div>
+      <div class="field" id="name-field"><label>Seu nome</label><input id="in-name" placeholder="Ex.: João Paulo" value=""></div>
       <div class="field"><label>E-mail</label><input id="in-email" type="email" placeholder="voce@email.com" value=""></div>
       <div class="field"><label>Senha</label><input id="in-pass" type="password" placeholder="••••••••" value=""></div>
-      <button class="btn green" id="auth-btn" onclick="doRegister()">Criar conta grátis</button>
-      <div class="muted">Já tem conta? <span class="switch" onclick="toggleAuthMode()">Entrar</span></div>
-      <div class="muted" id="cloud-status" style="margin-top:8px;">🔵 Conectando…</div>
+      <button class="btn green" id="auth-btn" onclick="submitAuth()">Criar conta grátis</button>
+      <div class="muted" id="auth-switch">Já tem conta? <span class="switch" onclick="toggleAuth()">Entrar</span></div>
+      <div class="muted" id="conn-status" style="margin-top:8px;">🔵 Verificando conexão…</div>
     </div>
     <div class="credit">created by Joao Candela</div>
   </section>
@@ -255,16 +246,22 @@
     </div>
   </section>
 
-  <!-- AJUSTAR FOTO (nova melhoria: zoom e posição) -->
-  <section id="photo" class="screen">
+  <!-- RECORTAR FOTO -->
+  <section id="crop" class="screen">
     <div class="back-top"><span class="xbtn" onclick="go('avatar')">←</span><b>Ajustar sua foto</b></div>
     <div class="pad" style="text-align:center;">
-      <p style="color:var(--cinza2);font-size:14px;margin-bottom:6px;">Ajuste o zoom e a posição para enquadrar a foto.</p>
-      <div class="photo-preview-wrap"><img id="photo-preview" alt="Prévia"></div>
-      <div class="range-row"><span>🔍 Zoom</span><input id="photo-zoom" type="range" min="1" max="3" step="0.01" value="1" oninput="updatePhotoPreview()"></div>
-      <div class="range-row"><span>↔️ Horizontal</span><input id="photo-x" type="range" min="-100" max="100" value="0" oninput="updatePhotoPreview()"></div>
-      <div class="range-row"><span>↕️ Vertical</span><input id="photo-y" type="range" min="-100" max="100" value="0" oninput="updatePhotoPreview()"></div>
-      <button class="btn green" onclick="usePhoto()" style="margin-top:14px;">✅ Usar esta foto</button>
+      <p style="color:var(--cinza2);font-size:14px;margin-bottom:14px;">Arraste para posicionar e use o controle para dar zoom.</p>
+      <div id="crop-stage">
+        <canvas id="crop-canvas" width="280" height="280"></canvas>
+        <div id="crop-ring"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin:18px 6px;">
+        <span style="font-size:18px;">🔍</span>
+        <input type="range" id="crop-zoom" min="1" max="3" step="0.01" value="1" style="flex:1;">
+        <span style="font-size:24px;">🔍</span>
+      </div>
+      <button class="btn green" onclick="applyCrop()">✅ Usar esta foto</button>
+      <button class="btn ghost sm" onclick="document.getElementById('avatar-file').click()" style="margin-top:10px;">📷 Escolher outra</button>
     </div>
   </section>
 
@@ -450,7 +447,7 @@
   <!-- PROFILE -->
   <section id="profile" class="screen">
     <div class="prof-head"><div style="position:relative;display:inline-block;">
-      <div class="av" id="p-init">J</div><button class="prof-avatar-btn" onclick="openAvatarPicker(false)">🐶</button>
+      <div class="av" id="p-init">J</div><button class="prof-avatar-btn" onclick="openAvatarPicker(false)" title="Trocar foto">📷</button>
     </div><h2 id="p-name">João</h2><div style="opacity:.8;font-size:13px;" id="p-email">email</div>
       <span class="free-badge" style="margin-top:10px;display:inline-block;">Plano: Grátis 🎉</span></div>
     <div class="pad">
@@ -462,14 +459,7 @@
       <div id="premium-cta" style="display:none;margin-bottom:14px;"><button class="btn gold" onclick="go('plans')">👑 Vire Premium — estude sem limites</button></div>
       <button class="btn ghost sm" onclick="go('timepicker')" style="margin-bottom:16px;">⏱️ Alterar minha meta diária (<span id="p-goal">10</span> XP)</button>
       <div class="sec-title">Conquistas</div><div class="badges" id="badges"></div>
-      <div class="sec-title" style="margin-top:22px;">Configurações</div>
-      <div class="concept">
-        <div class="settings-row"><span>🔊 Sons</span><input type="checkbox" id="set-sound" checked onchange="S.sound=this.checked;save();sound('click')"></div>
-        <div class="settings-row"><span>🔉 Volume</span><input type="range" id="set-volume" min="0" max="1" step="0.05" value="0.65" oninput="S.volume=+this.value;save();" onchange="sound('click')"></div>
-        <div class="settings-row"><span>📳 Vibração</span><input type="checkbox" id="set-vib" checked onchange="S.vibration=this.checked;save();"></div>
-      </div>
-      <button class="btn ghost sm" onclick="exportAllData()" style="margin-bottom:8px;">💾 Exportar meus dados (backup)</button>
-      <div style="margin-top:14px;"><button class="btn ghost" onclick="logout()">Sair da conta</button></div>
+      <div style="margin-top:22px;"><button class="btn ghost" onclick="logout()">Sair da conta</button></div>
       <div style="margin-top:10px;"><button class="btn ghost" onclick="deleteAccount()" style="color:var(--vermelho);border-color:#ffd5d5;box-shadow:0 4px 0 #ffd5d5;">🗑️ Excluir minha conta</button></div>
       <div style="margin-top:16px;text-align:center;"><span onclick="openAdmin()" style="font-size:10px;color:var(--cinza2);cursor:pointer;opacity:.5;">⚙️ admin</span></div>
       <div class="credit" style="text-align:center;">created by Joao Candela</div>
@@ -556,31 +546,26 @@
 <!-- ===== FIREBASE (chat + ranking em tempo real, compartilhado entre todos) ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, serverTimestamp }
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, getDocs, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser, setPersistence, browserLocalPersistence }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   // ⬇️⬇️ COLE AQUI a config do SEU projeto Firebase (Console → Configurações do projeto → Seus apps → Web) ⬇️⬇️
   const firebaseConfig = {
-    apiKey: "AIzaSyAqBSRIO9-TqRjgLXOGgLhLFy-s9H9vROw",
-    authDomain: "cfpgame-bdd0a.firebaseapp.com",
-    projectId: "cfpgame-bdd0a",
-    storageBucket: "cfpgame-bdd0a.firebasestorage.app",
-    messagingSenderId: "890466272884",
-    appId: "1:890466272884:web:39d7ad331ccca4e608b321"
+    apiKey: "COLE_SUA_API_KEY",
+    authDomain: "COLE.firebaseapp.com",
+    projectId: "COLE_SEU_PROJECT_ID",
+    storageBucket: "COLE.appspot.com",
+    messagingSenderId: "COLE",
+    appId: "COLE"
   };
   // ⬆️⬆️ Enquanto estiver "COLE_...", o app funciona localmente. Ao colar a config real, chat e ranking ficam ONLINE. ⬆️⬆️
 
-  window.FB = { ready:false, authReady:false };
+  window.FB = { ready:false };
   try {
     if(!String(firebaseConfig.projectId).startsWith("COLE")){
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
-      const auth = getAuth(app);
-      try{ setPersistence(auth, browserLocalPersistence); }catch(e){}
-      window.FB = { ready:true, authReady:true, db, auth, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, serverTimestamp,
-        createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser };
+      window.FB = { ready:true, db, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, getDocs, serverTimestamp };
       document.dispatchEvent(new Event('fb-ready'));
     }
   } catch(e){ console.warn('Firebase off:', e); }
@@ -592,109 +577,416 @@ const MAX_HEARTS=10;
 /* ===== QUESTÕES (Simulado CFP® Exame 52) ===== */
 const MODULES=[
  {id:1,nome:"Planej. Financeiro & Ética",emoji:"🧭",questions:[
-  {tag:"M1·Ética [307217]",q:"Sobre a remuneração de um profissional CFP®: I) Pode receber conforme a performance da carteira. II) Por indicação/venda de produtos. III) Salário fixo dos clientes. Correto:",opts:["I, apenas","I e II","II e III","I, II e III"],a:3,why:"O CFP® pode ser remunerado por performance, venda e salário fixo — com transparência dos conflitos."},
-  {tag:"M1·Domínios [413104]",q:"'Calcular a taxa de retorno real para atingir os objetivos do cliente' faz parte do domínio de:",opts:["Gestão Financeira","Planej. de Investimento e Gestão de Ativos","Planej. de Aposentadoria","Gestão de Riscos e Seguros"],a:1,why:"Calcular a taxa de retorno real necessária é do domínio de Planejamento de Investimentos e Gestão de Ativos."},
-  {tag:"M1·Macro [103159]",q:"Em cenário de DEFLAÇÃO: I) Queda na produção pela menor demanda. II) Desemprego e alta de juros. III) Alta de preços. Correto:",opts:["I, apenas","II e III","I e II","I, II e III"],a:0,why:"Deflação = queda de preços; reduz demanda e produção. II e III contrariam o conceito."},
-  {tag:"M1·Índices [103161]",q:"Sobre índices de inflação: o IPCA é calculado pelo IBGE e é a referência do regime de metas do Banco Central. A afirmação está:",opts:["Correta","Incorreta, é o IGP-M","Incorreta, é calculado pela FGV","Incorreta, mede só 1-5 salários"],a:0,why:"O IPCA (IBGE, 1 a 40 salários) é o índice de referência do regime de metas de inflação do BC."},
-  {tag:"M1·Suitability [102334]",q:"No Questionário de Perfil (suitability), o cliente é questionado sobre: I) Conhecimento sobre investimentos. II) Capacidade de suportar perdas. III) Produtos com que tem familiaridade.",opts:["I e II","I e III","I, II e III","II e III"],a:2,why:"O API/suitability avalia conhecimento, situação financeira (capacidade de perda) e objetivos/familiaridade."},
-  {tag:"M1·Lavagem [102168]",q:"Segundo a Lei 9.613/98 (lavagem de dinheiro), a punição:",opts:["Independe do julgamento das infrações antecedentes, ainda que em outro país","Depende do julgamento antecedente","Só se praticado no exterior","Não se aplica a terceiros"],a:0,why:"O crime de lavagem independe do processo/julgamento das infrações antecedentes, ainda que em outro país."},
-  {tag:"M1·Ética [412184]",q:"Segundo o Código de Ética da Planejar, colocar os interesses do cliente à frente dos interesses pessoais e comerciais é o princípio:",opts:["Integridade","Objetividade","Cliente em primeiro lugar","Imparcialidade"],a:2,why:"É o princípio do 'Cliente em primeiro lugar'."},
-  {tag:"M1·Processo [307279]",q:"A ordem correta das etapas do planejamento financeiro (Planejar) é: II)Relacionamento III)Coleta I)Análise IV)Desenvolvimento VI)Execução V)Monitoramento",opts:["II,III,I,IV,VI,V","I,II,III,IV,V,VI","II,III,I,IV,V,VI","I,III,IV,II,VI,V"],a:0,why:"Relacionamento → Coleta → Análise → Desenvolvimento → Execução → Monitoramento."},
-  {tag:"M1·SFN [201123]",q:"Sobre o Sistema Financeiro Nacional: o CMN determina a meta de inflação e as diretrizes; o BACEN executa a política monetária; a PREVIC fiscaliza a previdência fechada e a SUSEP a aberta. Está:",opts:["Correto","Incorreto quanto ao CMN","Incorreto quanto à PREVIC","Incorreto quanto à SUSEP"],a:0,why:"CMN (normativo/meta), BACEN (executa), PREVIC (fechada), SUSEP (aberta/seguros)."},
-  {tag:"M1·Inflação",q:"Com inflação de 5% ao ano por 2 anos consecutivos, a inflação acumulada no período é:",opts:["10,00%","10,25%","5,00%","25,00%"],a:1,why:"(1,05)² − 1 = 10,25% (não é soma simples de 10%).",steps:"1) Inflação acumulada = (1 + i)^n − 1\n2) = (1,05)² − 1\n3) = 1,1025 − 1 = 0,1025 → 10,25% (não é 5%+5%=10%)"},
-  {tag:"M1·Juros real",q:"Se a Selic é 6% a.a. e a inflação 8% a.a., o juro real é aproximadamente:",opts:["+2,00%","−1,85%","−2,00%","+1,85%"],a:1,why:"Real = (1,06 ÷ 1,08) − 1 ≈ −1,85% (juro real negativo).",steps:"1) Fisher: (1 + real) = (1 + nominal) ÷ (1 + inflação)\n2) = 1,06 ÷ 1,08 = 0,98148\n3) real = −0,0185 → −1,85% (juro real NEGATIVO)"}]},
+  {tag:"M1·Índices",q:"O índice de inflação oficial do Brasil, usado como referência na meta do Banco Central, é o:",opts:["IGP-M","IPCA","INPC","IGP-DI"],a:1,why:"O IPCA (IBGE) é o índice oficial e referência do regime de metas de inflação."},
+  {tag:"M1·Índices",q:"O índice muito utilizado para reajuste de aluguéis, calculado pela FGV, é o:",opts:["IPCA","INPC","IGP-M","INCC"],a:2,why:"O IGP-M (FGV) é tradicionalmente usado em contratos de aluguel."},
+  {tag:"M1·Selic",q:"A meta da taxa Selic é definida pelo:",opts:["CMN","COPOM","Tesouro Nacional","CVM"],a:1,why:"O COPOM (Comitê de Política Monetária do BC) define a meta da Selic."},
+  {tag:"M1·SFN",q:"No Sistema Financeiro Nacional, o órgão máximo normativo é o:",opts:["BACEN","CMN","CVM","SUSEP"],a:1,why:"O Conselho Monetário Nacional (CMN) é o órgão normativo máximo."},
+  {tag:"M1·SFN",q:"A autarquia que fiscaliza o mercado de capitais e as bolsas é a:",opts:["SUSEP","PREVIC","CVM","BACEN"],a:2,why:"A CVM regula e fiscaliza o mercado de valores mobiliários."},
+  {tag:"M1·SFN",q:"A previdência complementar ABERTA e os seguros são fiscalizados pela:",opts:["PREVIC","SUSEP","CVM","ANS"],a:1,why:"A SUSEP fiscaliza seguros e previdência aberta; a PREVIC, a fechada."},
+  {tag:"M1·SFN",q:"A previdência complementar FECHADA (fundos de pensão) é fiscalizada pela:",opts:["SUSEP","CVM","PREVIC","BACEN"],a:2,why:"A PREVIC fiscaliza as Entidades Fechadas de Previdência Complementar."},
+  {tag:"M1·Ética",q:"Segundo o princípio 'Cliente em primeiro lugar', o planejador deve:",opts:["Priorizar as metas da instituição","Colocar o interesse do cliente à frente do seu","Vender o produto de maior comissão","Seguir apenas o que o gerente pede"],a:1,why:"O interesse do cliente vem à frente dos interesses pessoais e comerciais."},
+  {tag:"M1·Ética",q:"Recomendar produto fora do perfil de risco do cliente fere principalmente o princípio da:",opts:["Objetividade/adequação","Diligência","Confidencialidade","Publicidade"],a:0,why:"Ofertar produto inadequado ao perfil viola a objetividade/suitability."},
+  {tag:"M1·Ética",q:"Manter em sigilo as informações do cliente refere-se ao princípio da:",opts:["Competência","Confidencialidade","Integridade","Objetividade"],a:1,why:"A confidencialidade protege as informações do cliente."},
+  {tag:"M1·Ética",q:"A remuneração do profissional CFP® pode ocorrer por performance, venda e salário, desde que:",opts:["Seja aprovada pela CVM","Haja transparência sobre conflitos de interesse","Não ultrapasse 2% ao ano","O cliente seja qualificado"],a:1,why:"É permitido remunerar de várias formas, com transparência dos conflitos."},
+  {tag:"M1·Processo",q:"A 1ª etapa do processo de planejamento financeiro (Planejar) é:",opts:["Implementar as recomendações","Definir o relacionamento e coletar dados/objetivos","Monitorar o plano","Analisar a carteira"],a:1,why:"O processo começa definindo o relacionamento e coletando dados e objetivos."},
+  {tag:"M1·Processo",q:"Monitorar o progresso em direção aos objetivos do cliente é etapa de:",opts:["Coleta","Análise","Monitoramento","Desenvolvimento"],a:2,why:"O acompanhamento periódico é a etapa de monitoramento."},
+  {tag:"M1·Suitability",q:"O questionário de perfil do investidor (API/suitability) avalia:",opts:["Apenas a renda do cliente","Conhecimento, situação financeira e objetivos","Somente a idade","O CPF e endereço"],a:1,why:"O suitability avalia conhecimento, capacidade financeira e objetivos."},
+  {tag:"M1·Suitability",q:"Um cliente que precisa do dinheiro em 6 meses para dar entrada num imóvel deve priorizar:",opts:["Ações de small caps","Alta liquidez e baixo risco","Fundo de ações alavancado","Debêntures de 10 anos"],a:1,why:"Objetivo de curto prazo pede liquidez e segurança."},
+  {tag:"M1·Macro",q:"Em um cenário de deflação (queda geral de preços), tende a ocorrer:",opts:["Aumento do consumo imediato","Adiamento de compras e queda da produção","Alta forte dos juros reais para conter demanda","Aceleração do PIB"],a:1,why:"Na deflação, consumidores adiam compras, reduzindo produção."},
+  {tag:"M1·Macro",q:"O PIB mede:",opts:["O total de impostos arrecadados","O valor de bens e serviços finais produzidos no país","A dívida pública","A base monetária"],a:1,why:"O PIB é o valor de todos os bens/serviços finais produzidos."},
+  {tag:"M1·Macro",q:"Política monetária EXPANSIONISTA típica inclui:",opts:["Aumento da Selic","Redução da Selic e dos compulsórios","Venda de títulos públicos","Aumento de impostos"],a:1,why:"Expansão: juros e compulsórios menores para estimular a economia."},
+  {tag:"M1·Lavagem",q:"Segundo a Lei 9.613/98, o crime de lavagem de dinheiro:",opts:["Só existe se cometido no exterior","Independe do julgamento da infração antecedente","Exige lucro pessoal do agente","Prescreve em 30 dias"],a:1,why:"A punição independe do processo/julgamento da infração antecedente."},
+  {tag:"M1·Câmbio",q:"Uma alta na taxa de juros dos EUA tende a provocar no Brasil:",opts:["Entrada de dólares e queda do câmbio","Saída de capitais e alta do dólar","Queda imediata da inflação","Aumento do PIB"],a:1,why:"Juros maiores lá atraem capital, pressionando o dólar para cima aqui."},
+  {tag:"M1·Domínios",q:"Calcular a taxa de retorno real necessária para as metas do cliente é do domínio de:",opts:["Gestão Financeira","Investimentos e Gestão de Ativos","Seguros","Sucessório"],a:1,why:"É competência do domínio de Planejamento de Investimentos."},
+  {tag:"M1·Ética",q:"É exemplo de conduta que fere a integridade do profissional CFP®:",opts:["Recusar caso fora de sua competência","Prestar informação falsa sobre suas qualificações","Encaminhar cliente a especialista","Atualizar o cadastro"],a:1,why:"Informar dados falsos sobre qualificações fere a integridade."},
+  {tag:"M1·INPC",q:"O reajuste dos benefícios do INSS é feito anualmente pelo:",opts:["IPCA","INPC","IGP-M","TR"],a:1,why:"Os benefícios do INSS são reajustados pelo INPC."},
+  {tag:"M1·Ética",q:"Diante de conflito de interesse, o profissional CFP® deve:",opts:["Ocultar do cliente","Identificar, informar e administrar o conflito","Encerrar o contrato","Repassar ao concorrente"],a:1,why:"O conflito deve ser identificado, comunicado e administrado."},
+  {tag:"M1·Perfil",q:"Cliente com alta tolerância a risco e horizonte longo é compatível com maior peso em:",opts:["Renda fixa pós-fixada","Renda variável","Poupança","Tesouro Selic"],a:1,why:"Longo prazo e alta tolerância comportam mais renda variável."},
+  {tag:"M1·Inflação",q:"Com inflação de 6% ao ano por 2 anos, a inflação acumulada é:",opts:["12,00%","12,36%","6,00%","36,00%"],a:1,why:"Acumulada = (1,06)²−1 = 12,36% (não é soma simples).",steps:"1) (1+i)^n − 1\n2) (1,06)² − 1 = 1,1236 − 1\n3) = 12,36%"},
+  {tag:"M1·Juro real",q:"Selic 12% e inflação 5%: o juro real aproximado (Fisher) é:",opts:["7,00%","6,67%","17,60%","5,00%"],a:1,why:"Real = (1,12/1,05)−1 ≈ 6,67%.",steps:"1) (1+nominal)/(1+inflação)−1\n2) 1,12/1,05 = 1,0667\n3) ≈ 6,67%"},
+  {tag:"M1·Juro real",q:"Selic 5% e inflação 7%: o juro real é aproximadamente:",opts:["+2,00%","−1,87%","−2,00%","+1,87%"],a:1,why:"Real = (1,05/1,07)−1 ≈ −1,87% (juro real negativo).",steps:"1) 1,05/1,07 = 0,98131\n2) −1 = −0,01869\n3) ≈ −1,87%"},
+  {tag:"M1·Juros simples",q:"R$ 10.000 a juros SIMPLES de 2% a.m. por 6 meses geram montante de:",opts:["R$ 11.200,00","R$ 11.261,00","R$ 12.000,00","R$ 10.200,00"],a:0,why:"VF = 10.000×(1+0,02×6) = 11.200.",steps:"1) VF = PV(1+i·n)\n2) = 10.000×(1+0,12)\n3) = R$ 11.200,00"},
+  {tag:"M1·Juros compostos",q:"R$ 10.000 a juros COMPOSTOS de 2% a.m. por 6 meses geram aprox.:",opts:["R$ 11.200,00","R$ 11.262,00","R$ 12.000,00","R$ 10.200,00"],a:1,why:"VF = 10.000×(1,02)^6 ≈ 11.262.",steps:"1) VF = PV(1+i)^n\n2) (1,02)^6 = 1,12616\n3) ≈ R$ 11.262,00"},
+  {tag:"M1·Taxa equiv.",q:"A taxa de 2% ao mês equivale, ao ano (composta), a aprox.:",opts:["24,00%","26,82%","27,00%","12,68%"],a:1,why:"(1,02)^12 − 1 ≈ 26,82%.",steps:"1) (1+i)^12 − 1\n2) (1,02)^12 = 1,2682\n3) ≈ 26,82% a.a."},
+  {tag:"M1·VP",q:"Para ter R$ 100.000 em 5 anos a 8% a.a., aplique hoje aprox.:",opts:["R$ 68.058,00","R$ 60.000,00","R$ 92.593,00","R$ 74.000,00"],a:0,why:"VP = 100.000/(1,08)^5 ≈ 68.058.",steps:"1) VP = VF/(1+i)^n\n2) (1,08)^5 = 1,46933\n3) 100.000/1,46933 ≈ R$ 68.058"},
+  {tag:"M1·Câmbio",q:"Se US$1=R$5,00 e o real desvaloriza 10%, o novo câmbio fica em:",opts:["R$ 4,50","R$ 5,50","R$ 5,10","R$ 6,00"],a:1,why:"Desvalorização de 10% eleva o câmbio: 5,00×1,10 = 5,50.",steps:"1) 5,00 × (1+0,10)\n2) = R$ 5,50"},
+  {tag:"M1·Meta",q:"Poupar R$ 500/mês por 12 meses (sem juros) acumula:",opts:["R$ 6.000,00","R$ 5.500,00","R$ 6.500,00","R$ 500,00"],a:0,why:"500×12 = R$ 6.000.",steps:"1) 500 × 12\n2) = R$ 6.000,00"},
+  {tag:"M1·Ética",q:"O CFP® que atua fora da sua área de competência deve:",opts:["Improvisar","Buscar consulta ou encaminhar a especialista","Recusar sempre o cliente","Cobrar o dobro"],a:1,why:"Nas áreas fora da competência, deve consultar/encaminhar."},
+  {tag:"M1·Macro",q:"O instrumento do BC que altera a quantidade de reservas obrigatórias dos bancos é o:",opts:["Redesconto","Depósito compulsório","IOF","Câmbio"],a:1,why:"O compulsório retém parte dos depósitos, controlando a liquidez."},
+  {tag:"M1·Macro",q:"Quando a demanda agregada supera a produção potencial, tende a haver:",opts:["Deflação","Pressão inflacionária","Recessão","Desemprego alto"],a:1,why:"Excesso de demanda pressiona os preços para cima."},
+  {tag:"M1·Ética",q:"Publicidade do profissional CFP® deve ser:",opts:["Exagerada para atrair clientes","Verdadeira, clara e não enganosa","Anônima","Sem menção a riscos"],a:1,why:"A comunicação deve ser verdadeira e não enganosa."},
+  {tag:"M1·SFN",q:"O 'emprestador de última instância' do sistema bancário é o:",opts:["CMN","BACEN","CVM","Tesouro"],a:1,why:"O Banco Central atua como emprestador de última instância."},
+  {tag:"M1·Perfil",q:"Reduz a tolerância ao risco de um investidor:",opts:["Horizonte muito longo","Necessidade de liquidez no curto prazo","Renda alta e estável","Reserva de emergência formada"],a:1,why:"Precisar do dinheiro logo reduz a tolerância a risco."},
+  {tag:"M1·Processo",q:"Assinar o escopo/responsabilidades entre cliente e planejador ocorre na etapa de:",opts:["Monitoramento","Definição do relacionamento","Execução","Análise"],a:1,why:"O escopo é firmado ao definir o relacionamento."},
+  {tag:"M1·Índices",q:"O IPCA abrange famílias com renda de:",opts:["1 a 5 salários","1 a 40 salários","acima de 40 salários","apenas 1 salário"],a:1,why:"O IPCA abrange faixa de 1 a 40 salários mínimos."},
+  {tag:"M1·Ética",q:"O profissional CFP® reincidente em infração grave pode sofrer:",opts:["Apenas advertência verbal","Suspensão ou perda do direito de uso da marca","Multa de R$ 1,00","Nenhuma penalidade"],a:1,why:"Reincidência pode levar a suspensão ou revogação do uso da marca CFP®."},
+  {tag:"M1·Macro",q:"Estagflação é a combinação de:",opts:["Crescimento alto e inflação baixa","Estagnação econômica com inflação alta","Deflação com pleno emprego","Juros zero e PIB alto"],a:1,why:"Estagflação = estagnação + inflação elevada."},
+  {tag:"M1·Domínios",q:"Avaliar a cobertura de seguros do cliente pertence ao domínio de:",opts:["Gestão de Riscos e Seguros","Investimentos","Aposentadoria","Tributário"],a:0,why:"É do domínio de Gestão de Riscos e Planejamento de Seguros."},
+  {tag:"M1·VF",q:"R$ 20.000 a 10% a.a. por 3 anos (compostos) tornam-se aprox.:",opts:["R$ 26.620,00","R$ 26.000,00","R$ 22.000,00","R$ 30.000,00"],a:0,why:"20.000×(1,1)^3 = 26.620.",steps:"1) (1,1)^3 = 1,331\n2) 20.000×1,331\n3) = R$ 26.620,00"},
+  {tag:"M1·Ética",q:"O CFP® deve manter seus dados cadastrais na Planejar atualizados em até:",opts:["24 horas","30 dias","1 ano","5 anos"],a:1,why:"A atualização cadastral deve ocorrer em até 30 dias da alteração."},
+  {tag:"M1·Macro",q:"Um aumento da Selic tende a, no curto prazo:",opts:["Estimular o consumo","Conter a inflação e a demanda","Desvalorizar o real","Reduzir o câmbio a zero"],a:1,why:"Juros maiores esfriam demanda e ajudam a conter a inflação."},
+  {tag:"M1·Suitability",q:"O prazo máximo para atualização do perfil (API), sem novas operações, costuma ser de:",opts:["6 meses","12 meses","24 meses","60 meses"],a:2,why:"A atualização do API costuma ocorrer a cada 24 meses."},
+  {tag:"M1·Ética",q:"Colocar a meta pessoal de vendas acima do interesse do cliente fere:",opts:["A objetividade e o cliente em 1º lugar","Apenas a confidencialidade","A competência técnica","A publicidade"],a:0,why:"Fere a objetividade e o princípio do cliente em primeiro lugar."},
+  {tag:"M1·Reserva",q:"A reserva de emergência recomendada equivale a:",opts:["1 mês de despesas","3 a 6 meses de despesas","24 meses de receita","Não é necessária"],a:1,why:"Recomenda-se de 3 a 6 meses das despesas essenciais."}]},
  {id:2,nome:"Gestão Financeira",emoji:"💰",questions:[
-  {tag:"M2·Amortização [302263]",q:"Comparando SAC e Price (mesma taxa/prazo/valor): I) SAC 1ª prestação maior, juros decrescentes. II) Price prestação constante, amortização crescente. III) Total de juros igual.",opts:["I, apenas","I e II","II e III","I, II e III"],a:1,why:"I e II corretas. III falsa: a SAC paga MENOS juros no total que a Price."},
-  {tag:"M2·Crédito Rural [425303]",q:"O crédito rural abrange recursos destinados a: I) Custeio II) Investimento III) Comercialização",opts:["I, apenas","I e II","II e III","I, II e III"],a:3,why:"Cobre as três finalidades: custeio, investimento e comercialização."},
-  {tag:"M2·SFI x SFH [425325]",q:"Sobre SFI e SFH:",opts:["No SFI há livre negociação; o SFH é regulado pelo Governo Federal com condições específicas","O SFI é p/ menor renda","O SFI usa poupança e FGTS","O SFH não tem limite"],a:0,why:"O SFI permite livre negociação de taxas; o SFH é regulado pelo Governo Federal, com condições e limites."},
-  {tag:"M2·BNDES [425304]",q:"Sobre financiamentos do BNDES: I) Implantação/expansão/modernização da capacidade produtiva. II) Máquinas e equipamentos importados. III) Capital de giro.",opts:["I, apenas","III, apenas","I e III","I, II e III"],a:2,why:"O BNDES foca capacidade produtiva (I) e capital de giro (III); prioriza bens nacionais, não importados."},
-  {tag:"M2·Poupança [102431]",q:"Sobre dados p/ orçamento: I) Entradas eventuais (bônus, 13º) devem ser registradas separadas das recorrentes. II) Despesas sazonais podem ser rateadas no ano. IV) Metas integram o orçamento como saídas planejadas.",opts:["I e II","I, II e IV","I e IV","II, III e IV"],a:1,why:"I, II e IV corretas. O saldo atual da conta também deve ser registrado (III é falsa)."},
-  {tag:"M2·Consignado [425344]",q:"Sobre o crédito consignado: I) Parcelas descontadas do salário/aposentadoria/pensão. II) FGTS pode ser garantia. III) Por ser isento de IOF, é mais atrativo.",opts:["I, apenas","I e II","II e III","I, II e III"],a:1,why:"I e II corretas. O consignado NÃO é isento de IOF (III falsa), mas tem juros menores por ter garantia."},
-  {tag:"M2·Leasing/CDC [425309]",q:"Sobre Leasing e CDC: I) Permite antecipar pagamentos sem descaracterizar. II) ISS no leasing e IOF no CDC. III) Contraprestações de leasing são despesa dedutível no Lucro Real.",opts:["I, apenas","II, apenas","II e III","I, II e III"],a:3,why:"As três estão corretas: antecipação permitida, ISS(leasing)/IOF(CDC) e dedução no Lucro Real."},
-  {tag:"M2·Consórcio [425307]",q:"Uma vantagem do consórcio de automóvel é:",opts:["Uso do FGTS","Rapidez em adquirir o bem","Custo inferior a financiamentos tradicionais","Para quem tem todo o recurso disponível"],a:2,why:"O consórcio tem custo menor (taxa de administração < juros de financiamento), mas não tem entrega imediata."},
-  {tag:"M2·Reserva [425105]",q:"A reserva de emergência recomendada equivale a:",opts:["1 mês de despesas","3 a 6 meses de despesas","12 meses de receitas","Não é necessária p/ alta renda"],a:1,why:"A reserva de emergência recomendada é de 3 a 6 meses das despesas essenciais."},
-  {tag:"M2·Cálculo",q:"Aplicando R$ 10.000,00 a juros compostos de 1% ao mês por 12 meses, o montante final será aproximadamente:",opts:["R$ 11.200,00","R$ 11.268,25","R$ 12.000,00","R$ 10.120,00"],a:1,why:"VF = 10.000 × (1,01)^12 ≈ R$ 11.268,25.",steps:"1) Fórmula dos juros compostos: VF = PV × (1 + i)^n\n2) Substituindo: VF = 10.000 × (1 + 0,01)^12\n3) (1,01)^12 = 1,126825\n4) VF = 10.000 × 1,126825 = R$ 11.268,25"},
-  {tag:"M2·SAC",q:"Financiamento SAC de R$ 120.000,00 em 120 meses. A amortização mensal (constante) é de:",opts:["R$ 1.000,00","R$ 1.200,00","R$ 1.100,00","R$ 2.000,00"],a:0,why:"Na SAC a amortização é constante: 120.000 ÷ 120 = R$ 1.000,00 por mês.",steps:"1) Na tabela SAC a amortização é CONSTANTE.\n2) Amortização = Valor financiado ÷ nº de parcelas\n3) 120.000 ÷ 120 = R$ 1.000,00 por mês"},
-  {tag:"M2·SAC",q:"No financiamento SAC de R$ 120.000,00 em 120 meses a 1% a.m., a 1ª prestação (amortização + juros) é:",opts:["R$ 1.000,00","R$ 1.200,00","R$ 2.200,00","R$ 2.000,00"],a:2,why:"Amortização 1.000 + juros (1% de 120.000 = 1.200) = R$ 2.200,00.",steps:"1) Prestação = Amortização + Juros do período\n2) Amortização = 120.000 ÷ 120 = R$ 1.000,00\n3) Juros 1º mês = 1% × saldo devedor = 1% × 120.000 = R$ 1.200,00\n4) 1ª prestação = 1.000 + 1.200 = R$ 2.200,00"},
-  {tag:"M2·Reserva",q:"Uma família tem despesas mensais de R$ 8.000,00 e quer reserva de 6 meses. O valor da reserva é:",opts:["R$ 24.000,00","R$ 48.000,00","R$ 8.000,00","R$ 16.000,00"],a:1,why:"6 × 8.000 = R$ 48.000,00 (reserva de emergência de 6 meses).",steps:"1) Reserva = despesas mensais × nº de meses\n2) 8.000 × 6 = R$ 48.000,00"},
-  {tag:"M2·Taxa equivalente",q:"A taxa de 1% ao mês, no regime composto, equivale a uma taxa anual de aproximadamente:",opts:["12,00%","12,68%","13,00%","11,00%"],a:1,why:"(1,01)^12 − 1 ≈ 12,68% ao ano.",steps:"1) Taxa equivalente composta: (1 + i_mês)^12 − 1\n2) (1,01)^12 = 1,126825\n3) − 1 = 0,126825 → 12,68% ao ano"}]},
+  {tag:"M2·Patrimônio",q:"O patrimônio líquido pessoal é calculado por:",opts:["Receitas − Despesas","Ativos − Passivos","Ativos + Passivos","Receita anual × 10"],a:1,why:"PL = Ativos (o que se tem) − Passivos (o que se deve)."},
+  {tag:"M2·Fluxo",q:"O superávit do fluxo de caixa pessoal é a principal fonte para:",opts:["Pagar juros do cartão","Realizar aportes/poupança","Aumentar dívidas","Pagar IPTU atrasado"],a:1,why:"O que sobra (superávit) financia os aportes e a formação de patrimônio."},
+  {tag:"M2·Orçamento",q:"No orçamento, entradas eventuais (13º, bônus) devem ser:",opts:["Ignoradas","Registradas separadas das recorrentes","Somadas ao salário fixo","Tratadas como dívida"],a:1,why:"Entradas eventuais devem ser separadas das receitas recorrentes."},
+  {tag:"M2·SAC",q:"Na tabela SAC, ao longo do tempo, a prestação é:",opts:["Constante","Crescente","Decrescente","Aleatória"],a:2,why:"Na SAC a amortização é constante e a prestação decresce (juros caem)."},
+  {tag:"M2·Price",q:"Na tabela Price, a prestação é:",opts:["Constante","Decrescente","Crescente","Igual à SAC"],a:0,why:"Na Price a prestação é constante; a amortização cresce."},
+  {tag:"M2·SAC×Price",q:"Comparando SAC e Price (mesma taxa/prazo/valor), o total de juros:",opts:["É igual","É maior na SAC","É maior na Price","Não existe na Price"],a:2,why:"A Price paga MAIS juros no total que a SAC."},
+  {tag:"M2·SFH×SFI",q:"No SFH, diferentemente do SFI:",opts:["Há livre negociação de taxas","Há regulação do Governo Federal com limites","Não se usa FGTS","Não há limite de valor"],a:1,why:"O SFH é regulado pelo Governo Federal, com condições e limites."},
+  {tag:"M2·Crédito rural",q:"O crédito rural financia:",opts:["Apenas custeio","Custeio, investimento e comercialização","Apenas máquinas importadas","Somente capital de giro"],a:1,why:"Cobre custeio, investimento e comercialização."},
+  {tag:"M2·Consignado",q:"Uma característica do crédito consignado é:",opts:["Juros maiores que o cheque especial","Desconto direto em folha/benefício, com juros menores","Ausência de garantia","Exclusivo para autônomos"],a:1,why:"O desconto em folha reduz o risco e, com isso, os juros."},
+  {tag:"M2·Consórcio",q:"Vantagem do consórcio frente ao financiamento é:",opts:["Entrega imediata do bem","Custo menor (taxa de adm. < juros)","Não usar FGTS","Rentabilizar o dinheiro"],a:1,why:"O consórcio tem custo menor, mas não garante o bem de imediato."},
+  {tag:"M2·Leasing",q:"No leasing (arrendamento mercantil), ao final do contrato o arrendatário pode:",opts:["Nada fazer","Exercer a opção de compra pelo VRG","Ser obrigado a devolver sempre","Vender o bem à vista"],a:1,why:"Ao fim, pode exercer a opção de compra (VRG) ou devolver/renovar."},
+  {tag:"M2·Indicadores",q:"O índice de liquidez pessoal mede:",opts:["A rentabilidade da carteira","Quanto dos ativos cobre despesas de curto prazo","O total de dívidas","O IR devido"],a:1,why:"Liquidez indica a capacidade de honrar o curto prazo (reserva)."},
+  {tag:"M2·Endividamento",q:"O índice de endividamento relaciona:",opts:["Ativos e receitas","Dívidas e patrimônio (ou renda)","Despesas e lazer","Juros e inflação"],a:1,why:"Mede o peso das dívidas frente ao patrimônio/renda."},
+  {tag:"M2·Educação fin.",q:"Boa prática de educação financeira é:",opts:["Financiar consumo no rotativo do cartão","Poupar antes de gastar (pague-se primeiro)","Ignorar despesas sazonais","Não ter reserva"],a:1,why:"Pagar-se primeiro (poupança automática) é boa prática."},
+  {tag:"M2·Reserva",q:"Família com despesas de R$ 9.000/mês e meta de 5 meses deve ter reserva de:",opts:["R$ 45.000","R$ 54.000","R$ 9.000","R$ 27.000"],a:0,why:"9.000×5 = R$ 45.000.",steps:"1) 9.000 × 5\n2) = R$ 45.000"},
+  {tag:"M2·SAC",q:"Financiamento SAC de R$ 240.000 em 120 meses. A amortização mensal é:",opts:["R$ 1.000","R$ 2.000","R$ 2.400","R$ 1.200"],a:1,why:"240.000/120 = R$ 2.000 constantes.",steps:"1) Amortização = Valor/nº parcelas\n2) 240.000/120 = R$ 2.000"},
+  {tag:"M2·SAC",q:"No SAC de R$ 240.000 em 120 meses a 1% a.m., a 1ª prestação é:",opts:["R$ 2.000","R$ 2.400","R$ 4.400","R$ 3.400"],a:2,why:"Amort. 2.000 + juros (1% de 240.000=2.400) = 4.400.",steps:"1) Juros1 = 1%×240.000 = 2.400\n2) Prest = 2.000 + 2.400\n3) = R$ 4.400"},
+  {tag:"M2·SAC",q:"No SAC de R$ 240.000 em 120 meses a 1% a.m., a 2ª prestação é:",opts:["R$ 4.400","R$ 4.376","R$ 4.000","R$ 2.376"],a:1,why:"Saldo após 1ª = 238.000; juros=2.380; prest=2.000+2.380=4.380 (aprox. 4.376).",steps:"1) Saldo=240.000−2.000=238.000\n2) Juros=1%×238.000=2.380\n3) Prest=2.000+2.380≈R$ 4.380"},
+  {tag:"M2·Juros comp.",q:"R$ 15.000 a 1% a.m. por 24 meses (compostos) tornam-se aprox.:",opts:["R$ 19.045","R$ 18.600","R$ 15.150","R$ 30.000"],a:0,why:"15.000×(1,01)^24 ≈ 19.045.",steps:"1) (1,01)^24 = 1,26973\n2) 15.000×1,26973\n3) ≈ R$ 19.045"},
+  {tag:"M2·Taxa equiv.",q:"1% ao mês equivale, ao ano (composta), a aprox.:",opts:["12,00%","12,68%","13,00%","11,00%"],a:1,why:"(1,01)^12−1 ≈ 12,68%.",steps:"1) (1,01)^12 = 1,12683\n2) −1 = 12,68% a.a."},
+  {tag:"M2·PL",q:"Ativos de R$ 1.200.000 e passivos de R$ 500.000. O PL é:",opts:["R$ 1.700.000","R$ 700.000","R$ 500.000","R$ 600.000"],a:1,why:"1.200.000 − 500.000 = R$ 700.000.",steps:"1) PL = Ativos − Passivos\n2) = R$ 700.000"},
+  {tag:"M2·Poupança",q:"Renda R$ 12.000, despesas R$ 9.000. O índice de poupança é:",opts:["20%","25%","30%","33%"],a:1,why:"(12.000−9.000)/12.000 = 25%.",steps:"1) Poupança=3.000\n2) 3.000/12.000 = 25%"},
+  {tag:"M2·Liquidez",q:"Reserva de R$ 30.000 e despesas mensais de R$ 6.000 cobrem:",opts:["3 meses","5 meses","6 meses","10 meses"],a:1,why:"30.000/6.000 = 5 meses.",steps:"1) 30.000/6.000\n2) = 5 meses"},
+  {tag:"M2·Perpetuidade",q:"Para renda perpétua de R$ 5.000/mês a juro real de 0,5% a.m., o capital é:",opts:["R$ 500.000","R$ 1.000.000","R$ 1.200.000","R$ 600.000"],a:1,why:"5.000/0,005 = R$ 1.000.000.",steps:"1) Capital = Renda/taxa\n2) 5.000/0,005\n3) = R$ 1.000.000"},
+  {tag:"M2·Amortização",q:"No sistema de amortização americano (SAA):",opts:["A amortização é constante","Só se pagam juros até o fim, com o principal no vencimento","A prestação decresce","Não há juros"],a:1,why:"No SAA pagam-se juros periódicos e o principal no final."},
+  {tag:"M2·Orçamento",q:"Despesas sazonais (IPVA, matrícula) devem, idealmente, ser:",opts:["Ignoradas","Rateadas ao longo do ano","Pagas no rotativo","Financiadas em 60x"],a:1,why:"Ratear no ano evita 'rombos' no mês do vencimento."},
+  {tag:"M2·BNDES",q:"O BNDES foca prioritariamente em:",opts:["Consumo pessoal","Capacidade produtiva e investimento das empresas","Compra de bens importados","Cartão de crédito"],a:1,why:"O BNDES financia capacidade produtiva/investimento; prioriza bens nacionais."},
+  {tag:"M2·FGTS",q:"O FGTS pode ser usado no financiamento imobiliário para:",opts:["Qualquer imóvel de luxo sem limite","Abater/quitar saldo dentro dos limites do SFH","Comprar ações","Pagar cartão"],a:1,why:"O FGTS é usável no SFH, respeitados limites e regras."},
+  {tag:"M2·Cartão",q:"O rotativo do cartão de crédito caracteriza-se por:",opts:["Juros baixos","Juros muito altos, a evitar","Isenção de IOF","Prazo de 10 anos"],a:1,why:"O rotativo tem juros elevados e deve ser evitado."},
+  {tag:"M2·Penhor",q:"No penhor, o cliente:",opts:["Perde o bem imediatamente","Oferece um bem como garantia do empréstimo","Não recebe crédito","Paga sem juros"],a:1,why:"O penhor usa um bem como garantia; o crédito é menor que a garantia."},
+  {tag:"M2·Ponto ótimo",q:"O 'ponto econômico ótimo' refere-se a:",opts:["Renda infinita","Ponto em que mais renda deixa de elevar o bem-estar relevante","Zerar despesas","Máxima dívida"],a:1,why:"Relaciona-se à utilidade marginal decrescente da renda."},
+  {tag:"M2·SAC",q:"Vantagem da SAC frente à Price num financiamento longo é:",opts:["Prestação inicial menor","Pagar menos juros no total","Amortização crescente","Prestação constante"],a:1,why:"A SAC paga menos juros no total."},
+  {tag:"M2·Price",q:"R$ 100.000 financiados na Price a 1% a.m. em 120 meses têm prestação aprox.:",opts:["R$ 1.435","R$ 1.100","R$ 2.000","R$ 833"],a:0,why:"Price: PMT = PV·i/(1−(1+i)^-n) ≈ 1.435.",steps:"1) i=0,01; n=120\n2) fator=(1−1,01^-120)/0,01≈69,70\n3) PMT=100.000/69,70≈R$ 1.435"},
+  {tag:"M2·Reserva",q:"Reserva ideal para autônomo (renda instável) tende a ser:",opts:["Menor que a de assalariado","Maior (mais meses de despesa)","Zero","1 mês"],a:1,why:"Renda instável pede reserva maior."},
+  {tag:"M2·Indicadores",q:"Um índice de endividamento muito alto indica:",opts:["Boa saúde financeira","Risco elevado e menor folga no orçamento","Excesso de reserva","Baixo risco"],a:1,why:"Endividamento alto reduz folga e eleva o risco."},
+  {tag:"M2·Juros",q:"A diferença entre juros simples e compostos cresce quando:",opts:["O prazo diminui","O prazo aumenta","A taxa é zero","Não há diferença"],a:1,why:"Quanto maior o prazo, maior a diferença (juros sobre juros)."},
+  {tag:"M2·Orçamento",q:"Metas financeiras, no orçamento, devem entrar como:",opts:["Receita","Saída planejada (poupança-meta)","Dívida","Despesa fixa aleatória"],a:1,why:"Metas entram como saídas planejadas (poupança direcionada)."},
+  {tag:"M2·Consórcio",q:"No consórcio, a antecipação da contemplação ocorre por:",opts:["Sorteio ou lance","Ordem de CPF","Idade","Renda"],a:0,why:"A contemplação se dá por sorteio ou lance."},
+  {tag:"M2·CDC",q:"O CDC (Crédito Direto ao Consumidor) incide, tipicamente:",opts:["ISS","IOF","ITBI","ITCMD"],a:1,why:"O CDC é financiamento e incide IOF (o leasing tem ISS)."},
+  {tag:"M2·Fluxo",q:"Fluxo de caixa deficitário recorrente exige, primeiro:",opts:["Tomar mais crédito","Diagnóstico de receitas e despesas","Investir em ações","Comprar imóvel"],a:1,why:"Antes de agir, diagnostica-se a origem do desequilíbrio."},
+  {tag:"M2·VF série",q:"Aportes de R$ 1.000/mês por 12 meses a 1% a.m. (fim de período) acumulam aprox.:",opts:["R$ 12.000","R$ 12.683","R$ 12.809","R$ 11.255"],a:1,why:"FV = 1.000×[((1,01)^12−1)/0,01] ≈ 12.683.",steps:"1) fator=((1,01)^12−1)/0,01=12,6825\n2) 1.000×12,6825\n3) ≈ R$ 12.683"},
+  {tag:"M2·Taxa real",q:"Aplicação rende 10% e inflação 6%: ganho real aprox.:",opts:["4,00%","3,77%","16,60%","6,00%"],a:1,why:"(1,10/1,06)−1 ≈ 3,77%.",steps:"1) 1,10/1,06=1,03774\n2) ≈ 3,77%"},
+  {tag:"M2·SFH",q:"Um limite típico do SFH refere-se a:",opts:["Idade do imóvel","Valor máximo do imóvel financiável","Cor do imóvel","Número de quartos"],a:1,why:"O SFH tem teto de valor do imóvel, entre outras condições."},
+  {tag:"M2·Educação",q:"O 'efeito bola de neve' das dívidas ocorre quando:",opts:["Se paga tudo à vista","Juros sobre juros ampliam o saldo devedor","Há reserva de emergência","A renda cresce"],a:1,why:"Juros compostos sobre dívidas ampliam rapidamente o saldo."},
+  {tag:"M2·Meta",q:"Para juntar R$ 60.000 em 5 anos sem juros, poupe por mês:",opts:["R$ 1.000","R$ 1.200","R$ 500","R$ 833"],a:0,why:"60.000/60 meses = R$ 1.000.",steps:"1) 60.000/60\n2) = R$ 1.000"},
+  {tag:"M2·SAC",q:"No SAC, o saldo devedor ao longo do tempo:",opts:["Cresce","Cai de forma linear","É constante","Zera na 1ª parcela"],a:1,why:"Como a amortização é constante, o saldo cai linearmente."},
+  {tag:"M2·Consignado",q:"O consignado é isento de IOF?",opts:["Sim","Não","Só p/ servidor","Só acima de R$ 50 mil"],a:1,why:"O consignado NÃO é isento de IOF; tem juros menores por ter garantia."},
+  {tag:"M2·Amortização",q:"Quem quer prestação inicial menor e valores constantes prefere:",opts:["SAC","Price","SAA","Nenhum"],a:1,why:"A Price tem prestação constante (inicial menor que a SAC)."},
+  {tag:"M2·FGTS",q:"O FGTS pode ser usado em consórcio de imóvel para:",opts:["Comprar ações","Dar lance/quitar parcelas","Pagar cartão","Investir"],a:1,why:"O FGTS pode ofertar lance/quitar saldo em consórcio de imóvel."},
+  {tag:"M2·Reserva",q:"Aumenta a necessidade de reserva de emergência:",opts:["Estabilidade no emprego","Renda variável/instável e dependentes","Reserva já formada","Baixo custo de vida"],a:1,why:"Renda instável e dependentes elevam a reserva ideal."}]},
  {id:3,nome:"Investimentos",emoji:"📈",questions:[
-  {tag:"M3·FGC [204134]",q:"Produtos com cobertura do FGC entre: I)Letra Imobiliária II)Letra Hipotecária III)LIG IV)Letra de Câmbio V)LF sem subordinação VI)LF com subordinação",opts:["I e IV","II e IV","I, III e V","II, IV e VI"],a:1,why:"A Letra Hipotecária (II) e a Letra de Câmbio (IV) têm cobertura do FGC."},
-  {tag:"M3·Falência [435201]",q:"Na falência de empresa americana, a ordem de recebimento é:",opts:["Common, Bonds, Preferred","Bonds, Common, Preferred","Preferred, Common, Bonds","Bonds, Preferred, Common"],a:3,why:"Credores (Bonds) → preferenciais (Preferred) → ordinárias (Common)."},
-  {tag:"M3·VIX [435308]",q:"O índice VIX ('índice do medo') é mensurado pela:",opts:["Volatilidade implícita das opções do S&P 500","Volatilidade implícita das opções do Dow Jones","Volatilidade histórica do S&P 500","Volatilidade histórica do Dow Jones"],a:0,why:"O VIX mede a volatilidade IMPLÍCITA das opções do S&P 500."},
-  {tag:"M3·Duration [303148]",q:"Carteira com Duration de Macaulay 5 anos e Duration Modificada 4,48 significa que:",opts:["O prazo médio é 4,48","A cada 1% de juros, impacto de 5%","A cada +1% de juros, desvaloriza 4,48%","A cada +1% de juros, valoriza 4,48%"],a:2,why:"A Duration Modificada (4,48) indica que a cada +1 p.p. de juros o título desvaloriza ~4,48%."},
-  {tag:"M3·VaR [207337]",q:"VaR diário de R$120 mil com 95% de confiança significa:",opts:["95% de chance de perder mais que R$120 mil","5% de chance de perder mais que R$120 mil no dia","Sempre perde R$120 mil","Ganha R$120 mil"],a:1,why:"Há 5% de probabilidade de a perda diária superar o VaR (R$120 mil)."},
-  {tag:"M3·TIPS [303546]",q:"Sobre as TIPS (títulos americanos indexados à inflação): I) Principal ajustado pela inflação. II) Cupom fixo na emissão. III) O principal ajustado não fica abaixo do valor de face mesmo em deflação.",opts:["II e III","I e III","I, II e III","I e II"],a:2,why:"As três corretas: principal ajustado pela inflação, cupom fixo e piso no valor de face."},
-  {tag:"M3·Beta [207234]",q:"Sobre o Beta: ações com Beta > 1 são mais voláteis que o mercado (arrojadas) e com Beta < 1 menos voláteis (conservadoras). Está:",opts:["Correto","Invertido","Beta não mede risco","Beta só p/ renda fixa"],a:0,why:"Beta > 1 = mais sensível ao mercado (arrojada); Beta < 1 = menos sensível (conservadora)."},
-  {tag:"M3·Fronteira [306302]",q:"Na Teoria do Portfólio, a fronteira eficiente:",opts:["É só p/ renda fixa","Representa carteiras com maior retorno a cada nível de risco","É o ponto ótimo único p/ todos","São carteiras abaixo da curva"],a:1,why:"A fronteira eficiente reúne as carteiras de maior retorno para cada nível de risco."},
-  {tag:"M3·Risco [207229]",q:"Sobre o risco total de mercado: parte é sistemático (não diversificável) e parte não-sistemático (diversificável). Está:",opts:["Correto","Todo risco é diversificável","Nenhum é diversificável","Só existe risco sistemático"],a:0,why:"Risco total = sistemático (não diversificável) + não-sistemático (diversificável)."},
-  {tag:"M3·Taxa real",q:"Um fundo rendeu 10% no ano e a inflação foi de 4%. A rentabilidade REAL aproximada foi:",opts:["6,00%","5,77%","5,00%","14,00%"],a:1,why:"Real = (1,10 ÷ 1,04) − 1 ≈ 5,77%. Não é subtração simples (6%).",steps:"1) Fórmula de Fisher: (1 + real) = (1 + nominal) ÷ (1 + inflação)\n2) (1 + real) = 1,10 ÷ 1,04 = 1,05769\n3) real = 0,05769 → 5,77% (não é 10−4=6%)"},
-  {tag:"M3·Sharpe",q:"Fundo com retorno 14%, ativo livre de risco 10% e desvio-padrão 8%. O Índice de Sharpe é:",opts:["0,50","0,25","1,75","4,00"],a:0,why:"Sharpe = (14% − 10%) ÷ 8% = 0,50.",steps:"1) Sharpe = (Retorno − Livre de risco) ÷ Desvio-padrão\n2) = (14% − 10%) ÷ 8%\n3) = 4% ÷ 8% = 0,50"},
-  {tag:"M3·Precificação",q:"Um título zero-cupom de valor de face R$ 1.000,00 vence em 2 anos e a taxa é 10% a.a. Seu preço (PU) hoje é aprox.:",opts:["R$ 900,00","R$ 826,45","R$ 800,00","R$ 1.000,00"],a:1,why:"PU = 1.000 ÷ (1,10)² ≈ R$ 826,45.",steps:"1) PU = Valor de face ÷ (1 + i)^n\n2) = 1.000 ÷ (1,10)²\n3) (1,10)² = 1,21\n4) = 1.000 ÷ 1,21 = R$ 826,45"},
-  {tag:"M3·Carteira",q:"Carteira com 60% em renda fixa (8%) e 40% em renda variável (15%). O retorno esperado é:",opts:["11,50%","10,80%","9,50%","12,00%"],a:1,why:"0,60×8% + 0,40×15% = 4,8% + 6,0% = 10,8%.",steps:"1) Retorno = Σ (peso × retorno)\n2) = (0,60 × 8%) + (0,40 × 15%)\n3) = 4,8% + 6,0% = 10,8%"},
-  {tag:"M3·Dividend Yield",q:"Uma ação custa R$ 40,00 e pagou R$ 3,00 de dividendos no ano. O dividend yield é:",opts:["7,50%","3,00%","13,33%","4,00%"],a:0,why:"DY = dividendo ÷ preço = 3 ÷ 40 = 7,5%.",steps:"1) Dividend Yield = Dividendo ÷ Preço da ação\n2) = 3,00 ÷ 40,00\n3) = 0,075 → 7,5%"}]},
+  {tag:"M3·Tesouro",q:"O título público pós-fixado atrelado à Selic, com risco de mercado baixíssimo, é o:",opts:["LTN (prefixado)","Tesouro Selic (LFT)","NTN-B (IPCA+)","NTN-F"],a:1,why:"A LFT (Tesouro Selic) acompanha a Selic diária."},
+  {tag:"M3·Tesouro",q:"O Tesouro IPCA+ (NTN-B) paga:",opts:["Só taxa prefixada","IPCA + taxa real","Só a Selic","Só o CDI"],a:1,why:"A NTN-B paga a inflação (IPCA) mais um juro real."},
+  {tag:"M3·Tesouro",q:"A LTN (Tesouro Prefixado) tem rentabilidade:",opts:["Pós-fixada","Definida na compra, se levada ao vencimento","Atrelada ao IPCA","Igual à poupança"],a:1,why:"A LTN é prefixada: a taxa é conhecida na compra."},
+  {tag:"M3·FGC",q:"NÃO possui cobertura do FGC:",opts:["CDB","LCI","Debênture","Poupança"],a:2,why:"Debêntures não têm FGC; CDB, LCI, LCA e poupança têm."},
+  {tag:"M3·FGC",q:"O limite de cobertura do FGC é de:",opts:["R$ 100 mil","R$ 250 mil por CPF e instituição","R$ 1 milhão","Ilimitado"],a:1,why:"São R$ 250 mil por CPF/instituição (teto global de R$ 1 mi/4 anos)."},
+  {tag:"M3·VIX",q:"O índice VIX ('índice do medo') mede:",opts:["Volatilidade implícita das opções do S&P 500","Retorno do Dow Jones","Inflação americana","Juros dos EUA"],a:0,why:"O VIX mede a volatilidade implícita das opções do S&P 500."},
+  {tag:"M3·Falência",q:"Na falência de empresa americana, recebem primeiro:",opts:["Ações ordinárias","Bonds (credores)","Ações preferenciais","Fundadores"],a:1,why:"Ordem: Bonds → Preferred → Common."},
+  {tag:"M3·Duration",q:"A Duration modificada mede:",opts:["O prazo até o vencimento","A sensibilidade do preço à variação de juros","O cupom pago","O rating"],a:1,why:"Duration modificada = sensibilidade do preço a variações de juros."},
+  {tag:"M3·Duration",q:"Quanto MAIOR a duration de um título prefixado, o preço é:",opts:["Menos sensível a juros","Mais sensível a juros","Imune a juros","Sempre maior"],a:1,why:"Maior duration → maior sensibilidade do preço às taxas."},
+  {tag:"M3·Sharpe",q:"O Índice de Sharpe mede:",opts:["Retorno por unidade de risco total","Risco de crédito","Liquidez","Retorno absoluto"],a:0,why:"Sharpe = (retorno − livre de risco)/desvio-padrão."},
+  {tag:"M3·Beta",q:"Uma ação com Beta 1,3:",opts:["É menos volátil que o mercado","Tende a oscilar mais que o mercado","Não tem risco","É livre de risco"],a:1,why:"Beta>1 indica maior sensibilidade/volatilidade que o mercado."},
+  {tag:"M3·Beta",q:"Uma ação com Beta 0,7 é considerada:",opts:["Mais arrojada","Mais defensiva que o mercado","Livre de risco","Alavancada"],a:1,why:"Beta<1 = menos volátil que o mercado (defensiva)."},
+  {tag:"M3·Risco",q:"O risco que NÃO pode ser eliminado por diversificação é o:",opts:["Não sistemático","Sistemático (de mercado)","Específico","Idiossincrático"],a:1,why:"O risco sistemático (de mercado) não é diversificável."},
+  {tag:"M3·Diversificação",q:"A diversificação é mais eficaz quando os ativos têm:",opts:["Correlação alta e positiva","Baixa correlação entre si","Mesma volatilidade","Beta igual a 1"],a:1,why:"Ativos pouco correlacionados reduzem melhor o risco."},
+  {tag:"M3·Markowitz",q:"A fronteira eficiente representa:",opts:["Carteiras de menor retorno","Carteiras de maior retorno para cada nível de risco","Só renda fixa","O ativo livre de risco"],a:1,why:"Reúne as carteiras ótimas (maior retorno por risco)."},
+  {tag:"M3·CAPM",q:"No CAPM, o retorno exigido depende de:",opts:["Apenas do dividendo","Livre de risco + beta × prêmio de mercado","Só do PIB","Só da inflação"],a:1,why:"Retorno = Rf + β×(Rm − Rf)."},
+  {tag:"M3·VaR",q:"VaR diário de R$ 100 mil a 95% significa:",opts:["Perda certa de R$ 100 mil","5% de chance de perder mais que R$ 100 mil no dia","Ganho de R$ 100 mil","Risco zero"],a:1,why:"Há 5% de probabilidade de a perda superar o VaR."},
+  {tag:"M3·Ações",q:"Dividend yield é:",opts:["Lucro/ação","Dividendo anual/preço da ação","Preço/lucro","Patrimônio/ação"],a:1,why:"DY = dividendos por ação ÷ preço da ação."},
+  {tag:"M3·Ações",q:"O índice P/L (preço/lucro) indica:",opts:["A dívida da empresa","Quantos anos de lucro pagam o preço da ação","O dividendo","O beta"],a:1,why:"P/L ≈ anos de lucro para 'pagar' o preço."},
+  {tag:"M3·Gordon",q:"No modelo de Gordon, o preço da ação é:",opts:["Dividendo × P/L","D1/(k−g)","Lucro/ação","EBITDA×múltiplo"],a:1,why:"P = D1/(k−g), com k=retorno exigido e g=crescimento."},
+  {tag:"M3·Renda fixa",q:"Quando a taxa de juros SOBE, o preço de um título prefixado:",opts:["Sobe","Cai","Não muda","Zera"],a:1,why:"Preço e taxa de títulos têm relação inversa."},
+  {tag:"M3·Fundos",q:"No fundo com 'come-cotas', a antecipação de IR ocorre em:",opts:["Todo mês","Maio e novembro","Só no resgate","Nunca"],a:1,why:"O come-cotas é semestral (maio e novembro)."},
+  {tag:"M3·Fundos",q:"ETF é um fundo que:",opts:["Tem gestão sempre ativa","Replica um índice e é negociado em bolsa","Só investe em imóveis","É isento de risco"],a:1,why:"ETF replica índice e é negociado em bolsa (gestão passiva)."},
+  {tag:"M3·FII",q:"O rendimento distribuído de FII para pessoa física pode ser isento de IR se:",opts:["O fundo tiver 1 cotista","Negociado em bolsa, 50+ cotistas e cotista com <10%","For fechado","Investir só em ações"],a:1,why:"Isenção pede bolsa, ≥50 cotistas e cotista com menos de 10%."},
+  {tag:"M3·Derivativos",q:"Comprar uma PUT dá o direito de:",opts:["Comprar o ativo","Vender o ativo a um preço","Receber dividendos","Alugar ações"],a:1,why:"A PUT é opção de venda: direito de vender ao preço de exercício."},
+  {tag:"M3·Derivativos",q:"Um exportador que teme queda do dólar pode se proteger:",opts:["Comprando dólar futuro","Vendendo dólar futuro / NDF","Comprando ações","Comprando CALL de dólar"],a:1,why:"Quem recebe em dólar vende futuro/NDF para travar o câmbio."},
+  {tag:"M3·Hedge",q:"O objetivo do hedge é:",opts:["Alavancar ganhos","Reduzir/eliminar um risco","Especular","Aumentar o beta"],a:1,why:"Hedge é proteção: reduzir um risco existente."},
+  {tag:"M3·Alocação",q:"Alterar a carteira aproveitando uma oportunidade de curto prazo é alocação:",opts:["Estratégica","Tática","Passiva","Buy and hold"],a:1,why:"A alocação tática ajusta a carteira ao momento de mercado."},
+  {tag:"M3·Alocação",q:"A alocação estratégica define:",opts:["Trades diários","A composição de longo prazo conforme o perfil","Só renda fixa","O horário de operar"],a:1,why:"A estratégica é a política de longo prazo alinhada ao perfil."},
+  {tag:"M3·Internacional",q:"Commercial papers americanos são:",opts:["Ações","Títulos de curto prazo de empresas","Imóveis","Moedas"],a:1,why:"São títulos de dívida de curto prazo emitidos por empresas."},
+  {tag:"M3·Internacional",q:"As TIPS (EUA) protegem contra:",opts:["Câmbio","Inflação","Falência","Juros"],a:1,why:"TIPS são títulos indexados à inflação americana."},
+  {tag:"M3·Liquidez",q:"Quanto MENOR o spread entre compra e venda de um ativo:",opts:["Menor a liquidez","Maior a liquidez","Maior o risco de crédito","Maior o cupom"],a:1,why:"Spread menor indica maior liquidez."},
+  {tag:"M3·Rating",q:"Uma queda no rating de crédito de um emissor tende a:",opts:["Elevar o preço do título","Reduzir o preço e elevar o yield exigido","Não afetar nada","Zerar o risco"],a:1,why:"Piora de rating aumenta o risco e o yield exigido; o preço cai."},
+  {tag:"M3·Alfa",q:"O alfa de Jensen positivo indica:",opts:["Desempenho abaixo do CAPM","Retorno acima do esperado pelo risco","Risco zero","Beta alto"],a:1,why:"Alfa positivo = retorno acima do exigido pelo risco (CAPM)."},
+  {tag:"M3·Taxa real",q:"Fundo rende 12% e a inflação 4%. O retorno real aprox. é:",opts:["8,00%","7,69%","16,50%","4,00%"],a:1,why:"(1,12/1,04)−1 ≈ 7,69%.",steps:"1) 1,12/1,04=1,07692\n2) ≈ 7,69%"},
+  {tag:"M3·Sharpe",q:"Retorno 16%, livre de risco 10%, desvio 12%. Sharpe:",opts:["0,50","0,25","1,33","6,00"],a:0,why:"(16−10)/12 = 0,50.",steps:"1) (16%−10%)/12%\n2) 6/12 = 0,50"},
+  {tag:"M3·PU",q:"Título zero-cupom, face R$ 1.000, 3 anos, 10% a.a. O PU é aprox.:",opts:["R$ 751,31","R$ 826,45","R$ 900,00","R$ 700,00"],a:0,why:"1.000/(1,1)^3 ≈ 751,31.",steps:"1) (1,1)^3=1,331\n2) 1.000/1,331≈R$ 751,31"},
+  {tag:"M3·CAPM",q:"Rf=6%, Rm=14%, β=1,5. Retorno exigido:",opts:["12%","18%","20%","21%"],a:1,why:"6% + 1,5×(14−6) = 18%.",steps:"1) Rf+β(Rm−Rf)\n2) 6+1,5×8\n3) = 18%"},
+  {tag:"M3·Beta",q:"β=1,2, Rf=5%, Rm=13%: retorno esperado:",opts:["14,6%","13,0%","15,0%","10,6%"],a:0,why:"5+1,2×8 = 14,6%.",steps:"1) 5+1,2×(13−5)\n2) 5+9,6\n3) = 14,6%"},
+  {tag:"M3·Carteira",q:"60% RF (9%) e 40% RV (16%): retorno esperado:",opts:["11,8%","12,5%","10,0%","13,0%"],a:0,why:"0,6×9+0,4×16 = 11,8%.",steps:"1) 5,4+6,4\n2) = 11,8%"},
+  {tag:"M3·DY",q:"Ação a R$ 50 paga R$ 4/ano de dividendo. DY:",opts:["8,0%","6,0%","12,5%","4,0%"],a:0,why:"4/50 = 8%.",steps:"1) 4/50\n2) = 8%"},
+  {tag:"M3·Gordon",q:"D1=R$ 2, k=12%, g=4%. Preço justo:",opts:["R$ 16,67","R$ 25,00","R$ 20,00","R$ 50,00"],a:2,why:"2/(0,12−0,04) = R$ 25.",steps:"1) D1/(k−g)\n2) 2/0,08\n3) = R$ 25"},
+  {tag:"M3·P/L",q:"Ação a R$ 30 e LPA R$ 3. O P/L é:",opts:["10","3","0,1","90"],a:0,why:"30/3 = 10.",steps:"1) Preço/LPA\n2) 30/3 = 10"},
+  {tag:"M3·Duration",q:"Duration modificada 4,5. Se os juros SOBEM 1 p.p., o título:",opts:["Valoriza 4,5%","Desvaloriza ~4,5%","Não muda","Desvaloriza 0,45%"],a:1,why:"ΔPreço ≈ −Dmod×Δjuros = −4,5%.",steps:"1) ΔP≈−Dmod×Δi\n2) −4,5×1%\n3) ≈ −4,5%"},
+  {tag:"M3·FGC",q:"Cliente com R$ 300 mil em CDB de UM banco recebe do FGC (na quebra):",opts:["R$ 300 mil","R$ 250 mil","R$ 50 mil","Zero"],a:1,why:"O FGC cobre até R$ 250 mil por CPF/instituição.",steps:"1) Teto = R$ 250 mil\n2) Recebe R$ 250 mil; R$ 50 mil viram crédito na massa"},
+  {tag:"M3·IR RF",q:"CDB resgatado após 3 anos: alíquota de IR:",opts:["22,5%","20%","17,5%","15%"],a:3,why:"Acima de 720 dias, 15% (menor alíquota).",steps:"1) >720 dias → 15%"},
+  {tag:"M3·IR RF",q:"Resgate de renda fixa em 100 dias: alíquota:",opts:["15%","17,5%","20%","22,5%"],a:3,why:"Até 180 dias, 22,5%.",steps:"1) até 180 dias → 22,5%"},
+  {tag:"M3·Ações",q:"O ganho na venda de ações (não day trade) até R$ 20 mil/mês por PF é:",opts:["Tributado a 15%","Isento de IR","Tributado a 20%","Tributado a 27,5%"],a:1,why:"Vendas de ações até R$ 20 mil/mês são isentas de IR."},
+  {tag:"M3·Ações",q:"No day trade em ações, a alíquota de IR é:",opts:["15%","20%","0%","10%"],a:1,why:"Day trade é tributado em 20%."},
+  {tag:"M3·Convexidade",q:"A convexidade de um título:",opts:["É o mesmo que duration","Melhora a estimativa de preço para grandes variações de juros","Mede o cupom","É sempre negativa"],a:1,why:"A convexidade complementa a duration em grandes movimentos."},
+  {tag:"M3·Perfil",q:"Para perfil conservador com foco em renda e eficiência fiscal, indica-se:",opts:["Small caps","Debêntures incentivadas / Tesouro Selic","Opções alavancadas","Cripto"],a:1,why:"Renda fixa isenta e Tesouro Selic combinam com conservador."},
+  {tag:"M3·ETF x FII",q:"Semelhança entre ETF e FII é que ambos:",opts:["São isentos sempre","São negociados em bolsa","Não têm risco","Pagam 27,5% de IR"],a:1,why:"Ambos são negociados em bolsa (mercado secundário)."}]},
  {id:4,nome:"Aposentadoria",emoji:"🌴",questions:[
-  {tag:"M4·CD [106357]",q:"No plano de Contribuição Definida (CD), o benefício:",opts:["Possui risco de déficit atuarial","Dependerá da reserva matemática acumulada","Será conhecido no início","Dependerá só da inflação"],a:1,why:"No CD o benefício depende da reserva acumulada; sem risco atuarial para o participante."},
-  {tag:"M4·INSS [305320]",q:"O benefício do INSS é corrigido anualmente pelo:",opts:["IPCA","INPC","IGP-M","TR"],a:1,why:"Os benefícios do INSS são reajustados anualmente pelo INPC."},
-  {tag:"M4·BD/CD [106339]",q:"Sobre planos das EFPCs: I) No CD as contribuições são previamente definidas. III) O BD tem mutualismo (responsabilidade coletiva em déficit).",opts:["I e III","I e IV","II e IV","I, II e III"],a:0,why:"No CD define-se a contribuição; no BD há mutualismo/responsabilidade coletiva em déficits."},
-  {tag:"M4·Renda [106359]",q:"O tipo de renda que proporciona o MAIOR valor mensal (mantidas as condições) é a:",opts:["Vitalícia","Vitalícia reversível ao cônjuge","Vitalícia com prazo mínimo garantido","Vitalícia reversível ao beneficiário"],a:0,why:"A renda vitalícia simples (sem reversão/garantias) tem o maior valor mensal."},
-  {tag:"M4·Diferimento [106352]",q:"O período de diferimento na previdência é:",opts:["Entre início da cobertura e início do benefício","Período de recebimento do benefício","Período de carência p/ resgate","Prazo total do plano"],a:0,why:"Diferimento = período entre o início da vigência e a data prevista para início do benefício."},
-  {tag:"M4·PGBL/VGBL [106421]",q:"Sobre PGBL e VGBL: I) Permitem portabilidade durante a contribuição. II) Têm benefícios fiscais em certas situações. III) Permitem escolha entre tabela regressiva ou progressiva.",opts:["III, apenas","I, apenas","II e III","I, II e III"],a:3,why:"As três corretas: portabilidade, benefícios fiscais e escolha do regime de tributação."},
-  {tag:"M4·EC103 [305321]",q:"Sobre a EC 103/2019 (RGPS): I) Idade mínima 62 (mulher) e 65 (homem). III) Benefício calculado sobre 80% das maiores contribuições desde jul/1994.",opts:["I e II","II e III","I e III","I, II e III"],a:2,why:"I e III corretas (idade mínima e média de 80% das maiores contribuições)."},
-  {tag:"M4·RGPS [305322]",q:"Sobre benefícios do RGPS: a pensão por morte não possui carência e é destinada aos dependentes. A afirmação está:",opts:["Correta","Incorreta, tem carência de 12 meses","Incorreta, só p/ cônjuge","Incorreta, é do RPPS"],a:0,why:"A pensão por morte no RGPS, como regra, não possui carência."},
-  {tag:"M4·PGBL",q:"Com renda bruta tributável anual de R$ 200.000,00, o valor máximo de aporte em PGBL dedutível do IR é:",opts:["R$ 12.000,00","R$ 24.000,00","R$ 20.000,00","R$ 27.500,00"],a:1,why:"PGBL deduz até 12% da renda bruta: 12% de 200.000 = R$ 24.000,00.",steps:"1) PGBL deduz até 12% da renda bruta tributável\n2) = 12% × 200.000\n3) = R$ 24.000,00"},
-  {tag:"M4·PGBL",q:"Aportando os R$ 24.000,00 dedutíveis em PGBL (alíquota marginal de IR de 27,5%), a economia/adiamento de IR é:",opts:["R$ 6.600,00","R$ 2.400,00","R$ 4.800,00","R$ 3.300,00"],a:0,why:"24.000 × 27,5% = R$ 6.600,00 de IR adiado.",steps:"1) Economia/adiamento de IR = aporte dedutível × alíquota marginal\n2) = 24.000 × 27,5%\n3) = R$ 6.600,00"},
-  {tag:"M4·Acumulação",q:"R$ 50.000,00 aplicados a 6% a.a. por 10 anos (juros compostos) resultam em aprox.:",opts:["R$ 80.000,00","R$ 89.542,00","R$ 95.000,00","R$ 110.000,00"],a:1,why:"50.000 × (1,06)^10 ≈ R$ 89.542,00.",steps:"1) VF = PV × (1 + i)^n\n2) = 50.000 × (1,06)^10\n3) (1,06)^10 = 1,79085\n4) = 50.000 × 1,79085 = R$ 89.542,00"},
-  {tag:"M4·Perpetuidade",q:"Para receber R$ 4.000,00 por mês de forma perpétua a uma taxa real de 5% a.a., o capital necessário é aprox.:",opts:["R$ 480.000,00","R$ 960.000,00","R$ 1.200.000,00","R$ 600.000,00"],a:1,why:"Renda anual 48.000 ÷ 0,05 = R$ 960.000,00 (perpetuidade).",steps:"1) Perpetuidade: Capital = Renda anual ÷ taxa\n2) Renda anual = 4.000 × 12 = 48.000\n3) = 48.000 ÷ 0,05 = R$ 960.000,00"},
-  {tag:"M4·Reposição",q:"Quem ganha R$ 10.000,00 na ativa e terá aposentadoria de R$ 6.000,00 tem taxa de reposição de:",opts:["40%","60%","166%","6%"],a:1,why:"Taxa de reposição = 6.000 ÷ 10.000 = 60%.",steps:"1) Taxa de reposição = renda na aposentadoria ÷ renda na ativa\n2) = 6.000 ÷ 10.000\n3) = 0,60 → 60%"}]},
+  {tag:"M4·PGBL",q:"O PGBL é indicado para quem:",opts:["Faz declaração simplificada","Faz declaração completa e quer deduzir até 12%","É isento de IR","Não contribui ao INSS"],a:1,why:"O PGBL deduz até 12% na declaração completa."},
+  {tag:"M4·VGBL",q:"No VGBL, o IR no resgate incide sobre:",opts:["O total resgatado","Apenas os rendimentos","O principal","Nada"],a:1,why:"No VGBL, o IR incide só sobre os rendimentos."},
+  {tag:"M4·PGBL",q:"No PGBL, o IR no resgate incide sobre:",opts:["Só os rendimentos","O total resgatado","O principal","Nada"],a:1,why:"No PGBL, o IR incide sobre o TOTAL resgatado."},
+  {tag:"M4·Dedução",q:"O limite de dedução do PGBL é de:",opts:["6% da renda bruta","12% da renda bruta anual","20% da renda","Sem limite"],a:1,why:"Deduz até 12% da renda bruta tributável anual."},
+  {tag:"M4·Regressiva",q:"Na tabela regressiva de previdência, após 10 anos, a alíquota é:",opts:["35%","20%","10%","0%"],a:2,why:"Cai de 35% até 10% (para prazos acima de 10 anos)."},
+  {tag:"M4·Regressiva",q:"A tabela regressiva é vantajosa para:",opts:["Curtíssimo prazo","Longo prazo","Quem resgata em 1 ano","Isentos"],a:1,why:"Quanto maior o prazo, menor a alíquota (chega a 10%)."},
+  {tag:"M4·Progressiva",q:"A tabela progressiva de previdência varia de:",opts:["10% a 35%","0% a 27,5%","15% fixo","20% fixo"],a:1,why:"Segue a tabela do IR: de 0% a 27,5%."},
+  {tag:"M4·CD",q:"No plano de Contribuição Definida (CD), o benefício:",opts:["É definido no início","Depende da reserva acumulada","Tem risco atuarial para o participante","É garantido pela patrocinadora"],a:1,why:"No CD o benefício depende do saldo acumulado."},
+  {tag:"M4·BD",q:"No Benefício Definido (BD):",opts:["O benefício é incerto","O benefício é conhecido, com risco de déficit atuarial","Não há mutualismo","Não há patrocinadora"],a:1,why:"No BD o benefício é definido; há risco atuarial (mutualismo)."},
+  {tag:"M4·EFPC",q:"EFPC (fundo de pensão fechado) é fiscalizada pela:",opts:["SUSEP","PREVIC","CVM","ANS"],a:1,why:"As EFPC são fiscalizadas pela PREVIC."},
+  {tag:"M4·EAPC",q:"Planos VGBL/PGBL (abertos) são fiscalizados pela:",opts:["PREVIC","SUSEP","CVM","BACEN"],a:1,why:"Os planos abertos (EAPC) são fiscalizados pela SUSEP."},
+  {tag:"M4·Renda",q:"O tipo de renda que gera o MAIOR valor mensal (mesmas condições) é a:",opts:["Vitalícia simples","Vitalícia reversível ao cônjuge","Prazo mínimo garantido","Temporária longa"],a:0,why:"A vitalícia simples (sem reversão/garantias) paga mais."},
+  {tag:"M4·Diferimento",q:"O período de diferimento é:",opts:["O tempo de recebimento do benefício","Entre a contratação e o início do benefício","A carência de resgate","O prazo do IR"],a:1,why:"É o período de acumulação até o início do benefício."},
+  {tag:"M4·Portabilidade",q:"A portabilidade de previdência:",opts:["Gera IR no momento","Não gera IR e mantém o prazo para a tabela regressiva","Zera a reserva","Só entre seguradoras diferentes"],a:1,why:"A portabilidade não é fato gerador de IR; mantém o prazo."},
+  {tag:"M4·INSS",q:"O reajuste dos benefícios do INSS é pelo:",opts:["IPCA","INPC","IGP-M","Selic"],a:1,why:"Os benefícios do INSS são reajustados pelo INPC."},
+  {tag:"M4·RGPS",q:"A pensão por morte no RGPS, como regra:",opts:["Tem carência de 24 meses","Não tem carência","É só para o cônjuge","É vitalícia sempre"],a:1,why:"Como regra, a pensão por morte não exige carência."},
+  {tag:"M4·RPPS",q:"Servidor do RPPS que passa à iniciativa privada:",opts:["Fica sem previdência","Passa a contribuir obrigatoriamente ao RGPS","Não pode contribuir","Perde tudo"],a:1,why:"Na CLT, contribui obrigatoriamente ao RGPS."},
+  {tag:"M4·Tábua",q:"Uma tábua atuarial mais antiga (maior expectativa de sobrevida) tende a gerar renda:",opts:["Maior","Menor","Igual","Zero"],a:1,why:"Tábua que projeta viver mais dilui a reserva → renda menor."},
+  {tag:"M4·Come-cotas",q:"A previdência (PGBL/VGBL), diferentemente de fundos comuns:",opts:["Tem come-cotas","NÃO tem come-cotas","Paga 27,5% sempre","É isenta de IR"],a:1,why:"Planos de previdência não sofrem come-cotas."},
+  {tag:"M4·Sucessão",q:"Uma vantagem sucessória do VGBL é:",opts:["Entrar no inventário","Liquidez rápida aos beneficiários, fora do inventário","Isenção total de IR","Não ter beneficiário"],a:1,why:"O VGBL vai direto aos beneficiários, com liquidez."},
+  {tag:"M4·Escolha",q:"Quem é isento de IR ou faz declaração simplificada tende a preferir:",opts:["PGBL","VGBL","BD","RPPS"],a:1,why:"Sem benefício de dedução, o VGBL costuma ser melhor."},
+  {tag:"M4·PGBL",q:"Renda bruta anual R$ 300.000. Aporte máximo dedutível em PGBL:",opts:["R$ 12.000","R$ 36.000","R$ 24.000","R$ 60.000"],a:1,why:"12% de 300.000 = R$ 36.000.",steps:"1) 12%×300.000\n2) = R$ 36.000"},
+  {tag:"M4·PGBL",q:"Aporte dedutível de R$ 36.000 e alíquota marginal 27,5%: IR adiado:",opts:["R$ 9.900","R$ 4.950","R$ 7.200","R$ 3.300"],a:0,why:"36.000×27,5% = R$ 9.900.",steps:"1) 36.000×0,275\n2) = R$ 9.900"},
+  {tag:"M4·Acumulação",q:"R$ 80.000 a 6% a.a. por 10 anos (compostos) viram aprox.:",opts:["R$ 143.268","R$ 128.000","R$ 160.000","R$ 89.542"],a:0,why:"80.000×(1,06)^10 ≈ 143.268.",steps:"1) (1,06)^10=1,79085\n2) 80.000×1,79085\n3) ≈ R$ 143.268"},
+  {tag:"M4·Perpetuidade",q:"Renda perpétua de R$ 6.000/mês a 5% a.a. real exige capital de:",opts:["R$ 720.000","R$ 1.440.000","R$ 120.000","R$ 600.000"],a:1,why:"Anual 72.000/0,05 = R$ 1.440.000.",steps:"1) 6.000×12=72.000\n2) 72.000/0,05\n3) = R$ 1.440.000"},
+  {tag:"M4·Reposição",q:"Renda ativa R$ 20.000 e aposentadoria R$ 12.000: taxa de reposição:",opts:["40%","60%","166%","72%"],a:1,why:"12.000/20.000 = 60%.",steps:"1) 12.000/20.000\n2) = 60%"},
+  {tag:"M4·Renda vit.",q:"Reserva R$ 1.000.000 e fator de renda 0,005: renda mensal:",opts:["R$ 2.000","R$ 5.000","R$ 500","R$ 50.000"],a:1,why:"1.000.000×0,005 = R$ 5.000.",steps:"1) Reserva×fator\n2) 1.000.000×0,005\n3) = R$ 5.000"},
+  {tag:"M4·Aporte",q:"Para juntar R$ 500.000 em 20 anos a 0,5% a.m., o aporte mensal é da ordem de:",opts:["R$ 1.082","R$ 2.100","R$ 500","R$ 5.000"],a:0,why:"PMT=FV·i/((1+i)^n−1) ≈ R$ 1.082.",steps:"1) i=0,005; n=240\n2) (1,005)^240≈3,3102 → fator=(2,3102)/0,005=462,04\n3) 500.000/462,04≈R$ 1.082"},
+  {tag:"M4·Diferimento",q:"Um plano com maior taxa de administração tende a acumular:",opts:["Mais reserva","Menos reserva","Igual","Zero"],a:1,why:"Taxas maiores corroem a rentabilidade e a reserva."},
+  {tag:"M4·Vesting",q:"No vesting, o funcionário que sai antes do prazo:",opts:["Leva 100% do aporte da empresa","Pode perder parte do aporte da empresa","Leva 200%","Não leva nada seu"],a:1,why:"O vesting condiciona a parcela da empresa ao tempo de casa."},
+  {tag:"M4·Escolha",q:"Contribuinte do INSS, declaração completa, quer diferir IR: recomenda-se:",opts:["VGBL","PGBL","LCI","Poupança"],a:1,why:"PGBL + completa permite diferir/deduzir até 12%."},
+  {tag:"M4·Renda",q:"Renda 'prazo certo' de 20 anos, no falecimento antes do fim:",opts:["Encerra sem reversão","Reverte aos beneficiários até o fim do prazo","Vira vitalícia","É perdida"],a:1,why:"Na prazo certo, o restante vai aos beneficiários."},
+  {tag:"M4·Tributação",q:"No PGBL regressivo, o resgate é tributado:",opts:["Exclusivo/definitivo na fonte","Só no ajuste anual","Isento","A 27,5% sempre"],a:0,why:"Regressivo = tributação exclusiva/definitiva na fonte."},
+  {tag:"M4·Fase",q:"Na fase de acumulação de um PGBL de RF pós-fixada, o participante assume:",opts:["Só risco de crédito da seguradora","Risco de mercado dos ativos e de crédito da seguradora","Nenhum risco","Risco cambial apenas"],a:1,why:"Assume o risco de mercado da carteira e de crédito da seguradora."},
+  {tag:"M4·EC103",q:"A EC 103/2019 estabeleceu idade mínima (RGPS) de:",opts:["60 (M) e 65 (H)","62 (M) e 65 (H)","55 e 60","65 e 70"],a:1,why:"Idade mínima: 62 anos (mulher) e 65 (homem)."},
+  {tag:"M4·Benefício",q:"No RGPS, o auxílio-doença exige carência (regra geral) de:",opts:["Sem carência","12 meses","24 meses","5 anos"],a:1,why:"O auxílio por incapacidade temporária exige, em regra, 12 meses."},
+  {tag:"M4·PGBL",q:"Sobre PGBL/VGBL: permitem escolher entre tabela regressiva ou progressiva?",opts:["Não","Sim","Só PGBL","Só VGBL"],a:1,why:"Ambos permitem escolher o regime de tributação."},
+  {tag:"M4·Renda",q:"A renda vitalícia reversível ao cônjuge, comparada à simples, paga:",opts:["Mais","Menos","Igual","Zero"],a:1,why:"A reversão reduz o valor mensal (paga menos)."},
+  {tag:"M4·Objetivo",q:"Para deixar liquidez e benefício fiscal aos herdeiros, indica-se:",opts:["LCA","VGBL","Poupança","Ações"],a:1,why:"VGBL dá liquidez sucessória e vantagem fiscal."},
+  {tag:"M4·Taxa real",q:"VGBL rende 12% e inflação 4% em 1 ano: real líquido (antes de IR) aprox.:",opts:["8%","7,69%","16%","4%"],a:1,why:"(1,12/1,04)−1 ≈ 7,69%.",steps:"1) 1,12/1,04=1,07692\n2) ≈ 7,69%"},
+  {tag:"M4·Regressiva",q:"Aporte com 3 anos na regressiva tem alíquota de:",opts:["35%","30%","25%","10%"],a:2,why:"2 a 4 anos = 30%; 4 a 6 = 25%. Em 3 anos → 30% (2–4)."},
+  {tag:"M4·Simplificada",q:"Quem faz declaração simplificada NÃO se beneficia da dedução do:",opts:["VGBL","PGBL","INSS","Livro-caixa"],a:1,why:"A dedução do PGBL exige declaração completa."},
+  {tag:"M4·Multipatroc.",q:"Em fundo multipatrocinado com contrapartida da empresa, sair antes do vesting:",opts:["Garante 100% da empresa","Pode reduzir a parcela da empresa","Não afeta nada","Dobra o saldo"],a:1,why:"O vesting condiciona a parcela patronal ao tempo."},
+  {tag:"M4·Beneficiário",q:"No VGBL, indicar beneficiários permite:",opts:["Entrar no inventário","Direcionar recursos com liquidez fora do inventário","Isenção de IR total","Evitar SUSEP"],a:1,why:"Permite direcionar recursos com liquidez, fora do inventário."},
+  {tag:"M4·Aporte extra",q:"Aporte único de R$ 100.000 a 8% a.a. por 5 anos:",opts:["R$ 146.933","R$ 140.000","R$ 108.000","R$ 200.000"],a:0,why:"100.000×(1,08)^5 ≈ 146.933.",steps:"1) (1,08)^5=1,46933\n2) 100.000×1,46933"},
+  {tag:"M4·INSS",q:"O teto do INSS limita:",opts:["A idade","O valor máximo do benefício","O tempo de contribuição","A alíquota"],a:1,why:"O benefício do INSS é limitado a um teto."},
+  {tag:"M4·Renda temp.",q:"Na renda temporária, ao fim do prazo:",opts:["Continua vitalícia","Cessa o pagamento","Reverte 100%","Vira BD"],a:1,why:"A temporária cessa ao término do prazo contratado."},
+  {tag:"M4·Carência",q:"Carência para resgate em planos de proponente qualificado pode chegar a:",opts:["60 dias","180 dias","24 meses","5 anos"],a:2,why:"Para qualificados, o intervalo pode ser estendido a 24 meses."},
+  {tag:"M4·Escolha",q:"Cliente jovem, perfil arrojado, resgate só na aposentadoria: previdência com:",opts:["100% renda fixa","Maior peso em renda variável","Só cambial","Só imóveis"],a:1,why:"Horizonte longo/arrojado comporta mais renda variável."},
+  {tag:"M4·Reserva",q:"Quanto MAIOR o tempo de acumulação, o esforço mensal para uma meta:",opts:["Aumenta","Diminui (juros compostos ajudam)","Não muda","Dobra"],a:1,why:"Mais tempo → juros compostos reduzem o aporte necessário."}]},
  {id:5,nome:"Seguros & Risco",emoji:"🛡️",questions:[
-  {tag:"M5·Incêndio [451103]",q:"Para reduzir o risco de incêndio: I) Sprinklers II) Comitê de combate III) Treinar equipe",opts:["I e II","I e III","II e III","I, II e III"],a:3,why:"Todas reduzem o risco (prevenção e proteção)."},
-  {tag:"M5·Beneficiário [454118]",q:"Seguro de vida R$1mi sem beneficiário; casado, 4 filhos. Morte natural: a indenização é paga:",opts:["20% cônjuge / 80% filhos","25% / 75%","50% cônjuge / 50% filhos","100% filhos"],a:2,why:"Sem beneficiário: 50% ao cônjuge e 50% aos herdeiros (Código Civil)."},
-  {tag:"M5·Coletivo [454119]",q:"Seguro de vida coletivo: I) A empresa é a Estipulante. II) Prêmio contributário é pago pelo segurado; não contributário pela empresa. III) Não é obrigatório (salvo acordos coletivos).",opts:["I, apenas","I e II","II e III","I, II e III"],a:3,why:"As três estão corretas."},
-  {tag:"M5·Resseguro [453131]",q:"O resseguro é a operação de:",opts:["Rateio do lucro entre segurados","Transferência de risco da cedente (seguradora) para o ressegurador","Transferência com aval do segurado","Transferência de apólice entre segurados"],a:1,why:"Resseguro = transferência de risco da seguradora (cedente) para o ressegurador."},
-  {tag:"M5·Endosso [454117]",q:"O documento que altera dados/condições de uma apólice, de comum acordo, chama-se:",opts:["Alteração","Endosso","Proposta","Rescisão"],a:1,why:"É o Endosso."},
-  {tag:"M5·Mutualismo [453130]",q:"O conceito de mutualismo no seguro significa:",opts:["A seguradora divide o lucro com o pool","Os segurados contribuem p/ cobrir uns aos outros em caso de sinistro","O lucro fica com quem não sinistrou","Cosseguradoras dividem o lucro"],a:1,why:"Mutualismo: os segurados formam um pool e contribuem para cobrir uns aos outros."},
-  {tag:"M5·D&O [455339]",q:"O seguro que protege o patrimônio pessoal de diretores/executivos por atos de gestão é o:",opts:["Seguro Garantia Judicial","Seguro Garantia Fiança","Seguro D&O","Seguro Acidentes Pessoais"],a:2,why:"O Seguro D&O (Directors & Officers) protege administradores por atos de gestão."},
-  {tag:"M5·Cosseguro [453107]",q:"No regime de cosseguro, para acionar o sinistro o segurado deve notificar:",opts:["Todas as seguradoras simultaneamente","A seguradora líder, que aciona as demais proporcionalmente","A SUSEP","Cada seguradora individualmente"],a:1,why:"No cosseguro, aciona-se a seguradora líder, que coordena o pagamento proporcional das demais."},
-  {tag:"M5·Rateio",q:"Um bem vale R$ 500.000,00 mas foi segurado por R$ 300.000,00 (subseguro). Num sinistro de R$ 100.000,00, a indenização com cláusula de rateio é:",opts:["R$ 100.000,00","R$ 60.000,00","R$ 300.000,00","R$ 50.000,00"],a:1,why:"Rateio = (300.000/500.000)=60%. Indeniza 60% de 100.000 = R$ 60.000,00.",steps:"1) Fator de rateio = valor segurado ÷ valor do bem\n2) = 300.000 ÷ 500.000 = 60%\n3) Indenização = fator × prejuízo = 60% × 100.000 = R$ 60.000,00"},
-  {tag:"M5·Franquia",q:"Sinistro de R$ 8.000,00 com franquia (dedutível) de R$ 2.000,00. A seguradora paga:",opts:["R$ 8.000,00","R$ 2.000,00","R$ 6.000,00","R$ 10.000,00"],a:2,why:"Indenização = prejuízo − franquia = 8.000 − 2.000 = R$ 6.000,00.",steps:"1) Indenização = Prejuízo − Franquia\n2) = 8.000 − 2.000\n3) = R$ 6.000,00 (a franquia fica por conta do segurado)"},
-  {tag:"M5·Capital",q:"Para repor uma renda de R$ 5.000,00/mês por 20 anos (240 meses), sem considerar juros, o capital segurado de vida deve ser:",opts:["R$ 600.000,00","R$ 1.200.000,00","R$ 240.000,00","R$ 5.000,00"],a:1,why:"5.000 × 240 = R$ 1.200.000,00 (método da reposição de renda, sem juros).",steps:"1) Capital = renda mensal × nº de meses (sem juros)\n2) = 5.000 × 240\n3) = R$ 1.200.000,00"},
-  {tag:"M5·Prêmio",q:"Uma apólice cobra taxa de 0,5% ao ano sobre um capital segurado de R$ 400.000,00. O prêmio anual é:",opts:["R$ 2.000,00","R$ 4.000,00","R$ 800.000,00","R$ 200,00"],a:0,why:"Prêmio = 0,5% × 400.000 = R$ 2.000,00.",steps:"1) Prêmio = taxa × capital segurado\n2) = 0,5% × 400.000\n3) = R$ 2.000,00"}]},
+  {tag:"M5·Prêmio",q:"No seguro, o valor pago pelo segurado à seguradora é o:",opts:["Sinistro","Prêmio","Indenização","Franquia"],a:1,why:"Prêmio = valor pago pelo segurado."},
+  {tag:"M5·Sinistro",q:"A ocorrência do evento coberto (o risco se materializando) é o:",opts:["Prêmio","Sinistro","Endosso","Apólice"],a:1,why:"Sinistro é a ocorrência do risco previsto."},
+  {tag:"M5·Indenização",q:"O pagamento feito pela seguradora ao segurado é a:",opts:["Franquia","Indenização","Prêmio","Comissão"],a:1,why:"Indenização é o pagamento da seguradora após o sinistro."},
+  {tag:"M5·Franquia",q:"A franquia é:",opts:["O valor total do prêmio","A parte do prejuízo por conta do segurado","O lucro da seguradora","O capital segurado"],a:1,why:"Franquia é a parcela do prejuízo que fica com o segurado."},
+  {tag:"M5·Objetivo",q:"O objetivo central do seguro é:",opts:["Ganhar dinheiro","Transferir um risco à seguradora","Especular","Investir"],a:1,why:"O seguro transfere o risco mediante prêmio."},
+  {tag:"M5·Mutualismo",q:"Mutualismo no seguro significa:",opts:["A seguradora divide o lucro","Segurados formam um fundo comum p/ cobrir sinistros","O lucro fica com quem não sinistrou","Cosseguro"],a:1,why:"Os segurados contribuem para cobrir uns aos outros."},
+  {tag:"M5·Endosso",q:"O documento que altera dados/condições de uma apólice é o:",opts:["Aditivo verbal","Endosso","Proposta","Bilhete"],a:1,why:"O endosso altera a apólice de comum acordo."},
+  {tag:"M5·Prescrição",q:"A perda do direito de reclamar pelo decurso do prazo é a:",opts:["Franquia","Prescrição","Carência","Sub-rogação"],a:1,why:"Prescrição = perda do direito pelo prazo legal."},
+  {tag:"M5·Carência",q:"O período de carência é aquele em que:",opts:["A cobertura já vale","Ainda não há cobertura para certos eventos","Não se paga prêmio","O prêmio dobra"],a:1,why:"Na carência, certos eventos ainda não têm cobertura."},
+  {tag:"M5·Beneficiário",q:"Seguro de vida sem beneficiário indicado (casado, com filhos) paga:",opts:["100% aos filhos","50% cônjuge e 50% herdeiros","100% ao cônjuge","À seguradora"],a:1,why:"Sem indicação: 50% cônjuge e 50% herdeiros (Código Civil)."},
+  {tag:"M5·RC",q:"O seguro de Responsabilidade Civil (RC) cobre:",opts:["Danos ao próprio bem","Danos involuntários a terceiros","Morte do segurado","Roubo do carro"],a:1,why:"O RC cobre danos a terceiros causados pelo segurado."},
+  {tag:"M5·D&O",q:"O seguro D&O protege:",opts:["O carro da empresa","O patrimônio pessoal de diretores por atos de gestão","O estoque","Os clientes"],a:1,why:"O D&O protege administradores por atos de gestão."},
+  {tag:"M5·Garantia",q:"O seguro garantia serve para:",opts:["Cobrir a vida do tomador","Garantir o cumprimento de obrigações contratuais","Pagar dividendos","Cobrir roubo"],a:1,why:"Garante que o tomador cumpra a obrigação com o segurado."},
+  {tag:"M5·Cosseguro",q:"No cosseguro, o segurado aciona:",opts:["Todas as seguradoras ao mesmo tempo","A seguradora líder","A SUSEP","O ressegurador"],a:1,why:"Aciona a líder, que coordena o pagamento proporcional."},
+  {tag:"M5·Resseguro",q:"O resseguro é a operação em que:",opts:["O segurado transfere risco","A seguradora (cedente) transfere risco ao ressegurador","O corretor cobra comissão","O cliente recebe bônus"],a:1,why:"É a transferência de risco da seguradora ao ressegurador."},
+  {tag:"M5·Prevenção",q:"Para reduzir o risco de incêndio, o segurado pode:",opts:["Só pagar mais prêmio","Instalar sprinklers e treinar equipe","Cancelar a apólice","Aumentar o estoque"],a:1,why:"Medidas de prevenção/proteção reduzem o risco."},
+  {tag:"M5·DIT",q:"A cobertura DIT (Diária por Incapacidade Temporária) paga:",opts:["Capital por morte","Diárias durante afastamento, após a franquia","Danos a terceiros","Roubo"],a:1,why:"A DIT paga diárias no período de afastamento (após franquia)."},
+  {tag:"M5·Vida",q:"O capital segurado no seguro de vida deve:",opts:["Ser o menor possível","Cobrir a necessidade real de proteção da família","Igualar o patrimônio","Ser aleatório"],a:1,why:"O capital deve cobrir a necessidade de proteção."},
+  {tag:"M5·Prestamista",q:"O seguro prestamista tem por objetivo:",opts:["Cobrir roubo do carro","Quitar uma dívida em caso de morte/invalidez","Pagar aluguel","Cobrir viagem"],a:1,why:"O prestamista quita o saldo devedor em sinistro coberto."},
+  {tag:"M5·DFI",q:"O seguro DFI (Danos Físicos ao Imóvel) cobre:",opts:["Aluguel","Incêndio, raio, explosão, vendaval","Roubo de joias","Vida do mutuário"],a:1,why:"O DFI cobre danos físicos ao imóvel (incêndio, vendaval etc.)."},
+  {tag:"M5·Fiança",q:"O seguro fiança locatícia protege o locador contra:",opts:["Roubo do imóvel","Inadimplência do aluguel","Morte do inquilino","Vida do locador"],a:1,why:"Cobre a inadimplência do inquilino (aluguel/encargos)."},
+  {tag:"M5·Saúde",q:"Reajuste de plano de saúde individual/familiar é limitado pela:",opts:["Livre negociação","ANS","SUSEP","CVM"],a:1,why:"A ANS define o teto de reajuste dos planos individuais."},
+  {tag:"M5·IR",q:"A indenização por MORTE de seguro de vida ao beneficiário é:",opts:["Tributada a 15%","Isenta de IR","Tributada a 27,5%","Sujeita a come-cotas"],a:1,why:"A indenização por morte é isenta de IR."},
+  {tag:"M5·IR",q:"O prêmio de seguro de vida individual, no IR, é:",opts:["Dedutível sem limite","Não dedutível","Dedutível até 12%","Isento"],a:1,why:"O prêmio de seguro de vida não é dedutível no IRPF."},
+  {tag:"M5·Rural",q:"O Seguro Agrícola cobre principalmente:",opts:["Vida do produtor","Perdas por eventos climáticos na lavoura","Máquinas roubadas","Casa do produtor"],a:1,why:"Cobre perdas da lavoura por fenômenos climáticos."},
+  {tag:"M5·Contrato",q:"O contrato de seguro é considerado:",opts:["Unilateral","Bilateral (obrigações para ambas as partes)","Gratuito","Sem risco"],a:1,why:"Há obrigações para segurado (prêmio) e seguradora (cobertura)."},
+  {tag:"M5·Estipulante",q:"No seguro coletivo, a empresa que representa os segurados é o:",opts:["Corretor","Estipulante","Ressegurador","Beneficiário"],a:1,why:"A empresa contratante é o estipulante."},
+  {tag:"M5·Invalidez",q:"A cobertura de Invalidez Permanente Parcial por Acidente paga:",opts:["Sempre 100%","Proporcional ao grau, conforme tabela","Nada","Só na morte"],a:1,why:"Paga proporcional ao grau de invalidez, conforme tabela."},
+  {tag:"M5·Etapas",q:"A 1ª etapa da gestão de riscos é:",opts:["Contratar o seguro","Identificar os riscos","Pagar a franquia","Acionar sinistro"],a:1,why:"Primeiro identificam-se os riscos."},
+  {tag:"M5·Rateio",q:"Bem vale R$ 500.000, segurado por R$ 300.000 (rateio). Sinistro de R$ 100.000 indeniza:",opts:["R$ 100.000","R$ 60.000","R$ 300.000","R$ 50.000"],a:1,why:"Fator 300/500=60%; 60%×100.000 = R$ 60.000.",steps:"1) fator=300.000/500.000=60%\n2) 60%×100.000\n3) = R$ 60.000"},
+  {tag:"M5·Franquia",q:"Sinistro de R$ 12.000 com franquia de R$ 3.000: a seguradora paga:",opts:["R$ 12.000","R$ 3.000","R$ 9.000","R$ 15.000"],a:2,why:"12.000 − 3.000 = R$ 9.000.",steps:"1) Prejuízo − franquia\n2) 12.000−3.000\n3) = R$ 9.000"},
+  {tag:"M5·Capital",q:"Repor renda de R$ 6.000/mês por 15 anos (180 meses), sem juros, exige:",opts:["R$ 720.000","R$ 1.080.000","R$ 360.000","R$ 90.000"],a:1,why:"6.000×180 = R$ 1.080.000.",steps:"1) 6.000×180\n2) = R$ 1.080.000"},
+  {tag:"M5·Prêmio",q:"Taxa de 0,4% ao ano sobre capital de R$ 500.000: prêmio anual:",opts:["R$ 2.000","R$ 4.000","R$ 200","R$ 20.000"],a:0,why:"0,4%×500.000 = R$ 2.000.",steps:"1) 0,004×500.000\n2) = R$ 2.000"},
+  {tag:"M5·DIT",q:"DIT de R$ 400/dia, franquia 10 dias, afastamento de 30 dias: recebe:",opts:["R$ 12.000","R$ 8.000","R$ 4.000","R$ 0"],a:1,why:"(30−10)×400 = R$ 8.000.",steps:"1) dias pagos=30−10=20\n2) 20×400\n3) = R$ 8.000"},
+  {tag:"M5·Beneficiário",q:"Vida de R$ 1.000.000 sem beneficiário, casado c/ 2 filhos: cada filho recebe:",opts:["R$ 500.000","R$ 250.000","R$ 333.333","R$ 200.000"],a:1,why:"50% cônjuge (500k) e 50% aos 2 filhos = 250k cada.",steps:"1) Cônjuge=500.000\n2) Filhos=500.000/2\n3) = R$ 250.000 cada"},
+  {tag:"M5·Rateio",q:"Seguro relativo: LMG R$ 2.600.000, bem R$ 5.600.000, dano R$ 1.200.000:",opts:["R$ 1.200.000","R$ 557.143","R$ 2.600.000","R$ 600.000"],a:1,why:"Fator 2.600/5.600=46,4%; ×1.200.000 ≈ 557.143.",steps:"1) fator=2.600.000/5.600.000=0,4643\n2) 0,4643×1.200.000\n3) ≈ R$ 557.143"},
+  {tag:"M5·Sub-rogação",q:"Após indenizar, a seguradora pode cobrar o causador do dano. Isso é:",opts:["Franquia","Sub-rogação","Cosseguro","Endosso"],a:1,why:"Sub-rogação: a seguradora assume o direito de cobrar o culpado."},
+  {tag:"M5·Coletivo",q:"Prêmio 'não contributário' no seguro coletivo é pago:",opts:["Pelo segurado","Pela empresa","Pela SUSEP","Pelo corretor"],a:1,why:"Não contributário = a empresa paga; contributário = o segurado."},
+  {tag:"M5·Vida inteira",q:"O seguro de vida 'resgatável/vida inteira' permite:",opts:["Só cobrir morte","Formar reserva e resgatar valores","Cobrir só acidente","Não ter prêmio"],a:1,why:"Acumula reserva (PMBAC) e permite resgate."},
+  {tag:"M5·LMI",q:"O Limite Máximo de Indenização (LMI) representa:",opts:["A franquia","O teto que a seguradora paga por sinistro","O prêmio anual","O bônus"],a:1,why:"O LMI é o teto de responsabilidade da apólice."},
+  {tag:"M5·Bilhete",q:"No seguro de pessoas, capital de morte pago ao beneficiário:",opts:["Entra no inventário","Vai direto ao beneficiário, com liquidez","É penhorável","Vira dívida"],a:1,why:"Vai direto ao beneficiário, fora do inventário."},
+  {tag:"M5·Seguro viagem",q:"O seguro viagem cobre tipicamente:",opts:["Só a passagem","Despesas médicas e imprevistos na viagem","Aluguel","Vida inteira"],a:1,why:"Cobre despesas médicas/hospitalares e imprevistos."},
+  {tag:"M5·Necessidade",q:"Método de cálculo do capital por 'reposição de renda' considera:",opts:["Só o patrimônio","A renda a substituir por um período","O prêmio","O IR"],a:1,why:"Baseia-se na renda a repor por determinado período."},
+  {tag:"M5·Endosso",q:"Alterar o valor do capital segurado no meio da vigência exige:",opts:["Nova apólice","Endosso","Cancelamento","Nada"],a:1,why:"O endosso formaliza a alteração da apólice."},
+  {tag:"M5·Auxílio funeral",q:"No 'auxílio funeral', a seguradora:",opts:["Presta o serviço diretamente","Reembolsa despesas até o limite","Ignora o evento","Cobre a vida"],a:1,why:"O auxílio reembolsa despesas até o limite contratado."},
+  {tag:"M5·Risco",q:"Transferir o risco por meio de seguro é uma estratégia de:",opts:["Retenção","Transferência","Eliminação","Ignorância"],a:1,why:"Contratar seguro é transferir o risco a um terceiro."},
+  {tag:"M5·Saúde",q:"Plano coletivo com muitos beneficiários tem reajuste:",opts:["Fixado pela ANS","Negociado entre operadora e contratante","Sempre zero","Definido pela SUSEP"],a:1,why:"Coletivos negociam o reajuste (não seguem o teto da ANS)."},
+  {tag:"M5·Cap. segurado",q:"Segurar um bem por valor MAIOR que o real (superseguro):",opts:["Gera indenização maior","Não gera indenização acima do valor real","É recomendado","Reduz o prêmio"],a:1,why:"A indenização não supera o valor real do bem."},
+  {tag:"M5·APP",q:"A cobertura APP (Acidentes Pessoais de Passageiros) protege:",opts:["Terceiros na rua","Os ocupantes do veículo","O patrimônio da empresa","A casa"],a:1,why:"A APP cobre os passageiros do veículo segurado."},
+  {tag:"M5·Objetivo",q:"Um médico que teme processos por erro deve contratar:",opts:["Seguro de vida","Responsabilidade Civil Profissional","Seguro viagem","DFI"],a:1,why:"O RC Profissional cobre danos a terceiros no exercício."}]},
  {id:6,nome:"Planej. Tributário",emoji:"🧾",questions:[
-  {tag:"M6·Doação [462136]",q:"João recebeu R$100 mil de doação do pai (depósito). Deve declarar na ficha:",opts:["Doações Recebidas","Rendimentos Isentos e Não Tributáveis","Rend. Tributáveis de PF","Tributação Exclusiva/Definitiva"],a:1,why:"Quem RECEBE doação declara como Rendimento Isento e Não Tributável (o ITCMD é estadual)."},
-  {tag:"M6·Tributação [204412]",q:"Sobre tributação: I) CDB e RF curto prazo têm tributação maior que LH e CRA. II) A poupança é isenta de IR p/ PF.",opts:["I, apenas","I e II","II e III","I, II e III"],a:1,why:"I e II corretas: CDB tem IR (LH/CRA isentos p/ PF) e a poupança é isenta."},
-  {tag:"M6·Lucro Real [463109]",q:"Devem obrigatoriamente optar pelo Lucro Real as PJ com receita anual anterior superior a:",opts:["R$ 4,8 milhões","R$ 20 milhões","R$ 78 milhões","R$ 100 milhões"],a:2,why:"São obrigadas ao Lucro Real as empresas com receita anual superior a R$ 78 milhões."},
-  {tag:"M6·ITBI/ICMS [461101]",q:"Na estrutura tributária: há situações em que os impostos são usados como instrumento extrafiscal. A afirmação está:",opts:["Correta","Incorreta","O IPI é estadual","O ISS é federal"],a:0,why:"Tributos como IPI, IOF e II podem ter função extrafiscal (regular a economia)."},
-  {tag:"M6·Simples [462122]",q:"Numa empresa do Simples Nacional, dividendos e pró-labore são tributados:",opts:["Ambos pela tabela progressiva","Ambos isentos","Dividendos progressiva; pró-labore isento","Dividendos isentos; pró-labore pela tabela progressiva"],a:3,why:"Dividendos são isentos de IR; o pró-labore é tributado pela tabela progressiva (com INSS)."},
-  {tag:"M6·ISS/ICMS [461103]",q:"A valorização de imóveis causada por obra pública gera cobrança de:",opts:["Contribuição de melhoria (Município)","Contribuição ao Estado","Contribuição à União","Não há tributo"],a:0,why:"A valorização por obra pública gera Contribuição de Melhoria, de competência do Município."},
-  {tag:"M6·Autônomo [462116]",q:"Sobre o profissional autônomo: I) É tributado pelo IRPF. II) É contribuinte do ISS.",opts:["I","I e II","II e III","I, II e III"],a:1,why:"O autônomo é tributado pelo IRPF e é contribuinte do ISS."},
-  {tag:"M6·Ganho Capital",q:"Um imóvel comprado por R$ 300.000,00 foi vendido por R$ 500.000,00. Sobre o ganho de capital de R$ 200.000,00, o IR (15%) é:",opts:["R$ 75.000,00","R$ 30.000,00","R$ 45.000,00","R$ 20.000,00"],a:1,why:"IR = 15% × 200.000 = R$ 30.000,00 (alíquota inicial de ganho de capital).",steps:"1) Ganho de capital = venda − compra = 500.000 − 300.000 = 200.000\n2) IR = 15% × ganho\n3) = 15% × 200.000 = R$ 30.000,00"},
-  {tag:"M6·IR Renda Fixa",q:"Um CDB rendeu R$ 10.000,00 e foi resgatado após 3 anos (alíquota de 15%). O IR retido é:",opts:["R$ 2.250,00","R$ 1.500,00","R$ 2.000,00","R$ 1.750,00"],a:1,why:"Acima de 720 dias a alíquota é 15%: 15% × 10.000 = R$ 1.500,00.",steps:"1) Acima de 720 dias → alíquota de 15% (a menor da tabela regressiva)\n2) IR = 15% × rendimento\n3) = 15% × 10.000 = R$ 1.500,00"},
-  {tag:"M6·IR Renda Fixa",q:"Resgate de renda fixa com rendimento de R$ 4.000,00 em 100 dias. A alíquota de IR aplicável é:",opts:["15,0%","17,5%","20,0%","22,5%"],a:3,why:"Até 180 dias, a alíquota regressiva de IR é 22,5% (a maior).",steps:"1) Tabela regressiva de IR:\n   • até 180 dias → 22,5%\n   • 181–360 → 20%\n   • 361–720 → 17,5%\n   • acima de 720 → 15%\n2) 100 dias está na 1ª faixa → 22,5%"},
-  {tag:"M6·Come-cotas",q:"Em fundo de renda fixa de longo prazo, o come-cotas semestral (maio e novembro) usa a alíquota de:",opts:["15%","17,5%","20%","22,5%"],a:0,why:"O come-cotas usa a menor alíquota da categoria: 15% (longo prazo). O restante é ajustado no resgate.",steps:"1) O come-cotas antecipa o IR em maio e novembro.\n2) Usa sempre a MENOR alíquota da categoria.\n3) Longo prazo → 15% (o restante é acertado no resgate)."}]},
+  {tag:"M6·Tributo",q:"Segundo o CTN, tributo é prestação:",opts:["Voluntária","Compulsória, em lei, não sanção de ato ilícito","Facultativa","Só em serviços"],a:1,why:"Tributo é compulsório, instituído em lei, e não é sanção."},
+  {tag:"M6·ITCMD",q:"O imposto sobre herança e doação (ITCMD) é de competência:",opts:["Federal","Estadual","Municipal","Do INSS"],a:1,why:"O ITCMD é estadual."},
+  {tag:"M6·ITBI",q:"O imposto na compra e venda de imóvel (ITBI) é de competência:",opts:["Federal","Estadual","Municipal","Do cartório"],a:2,why:"O ITBI é municipal."},
+  {tag:"M6·IPI",q:"O IPI, com função extrafiscal (regular a economia), é de competência:",opts:["Municipal","Estadual","Federal","Do INSS"],a:2,why:"O IPI é federal e pode ter função extrafiscal."},
+  {tag:"M6·Doação",q:"Para quem RECEBE uma doação em dinheiro, no IRPF é:",opts:["Tributável","Rendimento isento e não tributável","Exclusiva na fonte","Ganho de capital"],a:1,why:"Quem recebe declara como isento (o ITCMD é estadual)."},
+  {tag:"M6·Simples",q:"O regime que recolhe tributos em guia única (DAS) p/ ME/EPP é o:",opts:["Lucro Real","Lucro Presumido","Simples Nacional","MEI apenas"],a:2,why:"O Simples Nacional unifica tributos no DAS."},
+  {tag:"M6·Presumido",q:"No Lucro Presumido, a base de cálculo é:",opts:["O lucro contábil real","Uma margem presumida sobre o faturamento","Zero","O patrimônio"],a:1,why:"Presume-se uma margem de lucro sobre a receita."},
+  {tag:"M6·Real",q:"No Lucro Real, IRPJ/CSLL incidem sobre:",opts:["Faturamento","O lucro contábil efetivo, após ajustes","Presunção","Dividendos"],a:1,why:"Incide sobre o lucro real (contábil, ajustado)."},
+  {tag:"M6·Real obrig.",q:"É obrigada ao Lucro Real a empresa com receita anual acima de:",opts:["R$ 4,8 mi","R$ 20 mi","R$ 78 mi","R$ 100 mi"],a:2,why:"Receita > R$ 78 milhões obriga o Lucro Real."},
+  {tag:"M6·Poupança",q:"O rendimento da poupança, para PF, é:",opts:["Tributado a 15%","Isento de IR","Tributado a 22,5%","Sujeito a come-cotas"],a:1,why:"A poupança é isenta de IR para pessoa física."},
+  {tag:"M6·LCI/LCA",q:"LCI e LCA, para pessoa física, são:",opts:["Tributadas a 15%","Isentas de IR","Tributadas a 20%","Sujeitas a come-cotas"],a:1,why:"LCI/LCA são isentas de IR para PF."},
+  {tag:"M6·Dividendos",q:"Dividendos recebidos por PF de ações brasileiras são (regra atual):",opts:["Tributados a 15%","Isentos de IR","Tributados a 27,5%","Exclusivos na fonte"],a:1,why:"Dividendos de ações BR são isentos de IR para PF (regra atual)."},
+  {tag:"M6·Pró-labore",q:"O pró-labore do sócio é:",opts:["Isento","Tributado pela tabela progressiva (+INSS)","Exclusivo definitivo","Isento até R$ 40 mil"],a:1,why:"O pró-labore é tributável pela tabela progressiva, com INSS."},
+  {tag:"M6·Ganho capital",q:"Ganho de capital na venda de imóvel (até R$ 5 mi) tem alíquota inicial de:",opts:["10%","15%","20%","27,5%"],a:1,why:"Começa em 15% (progressivo até 22,5%)."},
+  {tag:"M6·Ações isenção",q:"Vendas de ações por PF até R$ 20 mil/mês (não day trade) são:",opts:["Tributadas a 15%","Isentas de IR","Tributadas a 20%","Exclusivas"],a:1,why:"Até R$ 20 mil/mês, o ganho é isento."},
+  {tag:"M6·Come-cotas",q:"O come-cotas de fundo de RF longo prazo usa a alíquota de:",opts:["22,5%","20%","17,5%","15%"],a:3,why:"O come-cotas usa a menor alíquota da categoria (15% p/ LP)."},
+  {tag:"M6·Contribuição",q:"A valorização de imóvel por obra pública gera:",opts:["ITBI","ITCMD","Contribuição de melhoria (Município)","IOF"],a:2,why:"Obra pública que valoriza gera contribuição de melhoria municipal."},
+  {tag:"M6·Autônomo",q:"O autônomo é tributado pelo IRPF e é contribuinte do:",opts:["ICMS","ISS","IPI","ITR"],a:1,why:"O autônomo é contribuinte do ISS."},
+  {tag:"M6·Deduções",q:"Na declaração completa, é dedutível:",opts:["Aluguel pago","Despesas médicas sem limite","Cartão de crédito","Viagens"],a:1,why:"Despesas médicas são dedutíveis (sem limite), com comprovação."},
+  {tag:"M6·Elisão",q:"Reduzir o imposto por meios lícitos (planejamento) é:",opts:["Evasão","Elisão fiscal","Sonegação","Fraude"],a:1,why:"Elisão é o planejamento lícito; evasão é ilícita."},
+  {tag:"M6·Evasão",q:"Lançar despesas médicas inexistentes para reduzir IR é:",opts:["Elisão","Evasão/sonegação (ilícito)","Planejamento","Isenção"],a:1,why:"É evasão/sonegação — conduta ilícita."},
+  {tag:"M6·Fundos",q:"Diferentemente de fundos comuns, LCI/CRA/CRI para PF não têm:",opts:["Risco","IR sobre os rendimentos","Prazo","Emissor"],a:1,why:"São isentos de IR para PF (não têm IR sobre rendimentos)."},
+  {tag:"M6·JCP",q:"Os Juros sobre Capital Próprio (JCP), ao acionista, são:",opts:["Isentos","Tributados na fonte a 15%","Tributados a 27,5%","Exclusivos progressivos"],a:1,why:"O JCP é tributado na fonte a 15%."},
+  {tag:"M6·Saída",q:"Quem se muda definitivamente do país deve entregar:",opts:["Nada","A Comunicação/Declaração de Saída Definitiva","Só o carnê-leão","O DARF anual"],a:1,why:"Deve comunicar/declarar a saída definitiva do país."},
+  {tag:"M6·Anterioridade",q:"Um imposto criado hoje, em regra, só é cobrado:",opts:["Imediatamente","No exercício seguinte (anterioridade)","Em 5 anos","Nunca"],a:1,why:"A anterioridade adia a cobrança para o exercício seguinte."},
+  {tag:"M6·Ganho capital",q:"Imóvel comprado por R$ 300.000 e vendido por R$ 500.000. IR (15%):",opts:["R$ 75.000","R$ 30.000","R$ 45.000","R$ 20.000"],a:1,why:"Ganho 200.000 ×15% = R$ 30.000.",steps:"1) Ganho=500.000−300.000=200.000\n2) 15%×200.000\n3) = R$ 30.000"},
+  {tag:"M6·IR RF",q:"CDB rende R$ 20.000 em 3 anos (15%). IR retido:",opts:["R$ 4.500","R$ 3.000","R$ 4.000","R$ 3.500"],a:1,why:"15%×20.000 = R$ 3.000.",steps:"1) >720 dias → 15%\n2) 15%×20.000\n3) = R$ 3.000"},
+  {tag:"M6·IR RF",q:"Rendimento de R$ 8.000 em 150 dias. Alíquota e IR:",opts:["15% → 1.200","22,5% → 1.800","20% → 1.600","17,5% → 1.400"],a:1,why:"Até 180 dias: 22,5% ×8.000 = R$ 1.800.",steps:"1) 150 dias → 22,5%\n2) 22,5%×8.000\n3) = R$ 1.800"},
+  {tag:"M6·ITCMD",q:"Herança de R$ 800.000 com ITCMD de 4%. Imposto:",opts:["R$ 32.000","R$ 80.000","R$ 8.000","R$ 16.000"],a:0,why:"4%×800.000 = R$ 32.000.",steps:"1) 0,04×800.000\n2) = R$ 32.000"},
+  {tag:"M6·Ações IR",q:"Lucro de R$ 30.000 na venda de ações (não day, acima de 20 mil): IR:",opts:["R$ 4.500","R$ 3.000","R$ 6.000","Isento"],a:0,why:"15%×30.000 = R$ 4.500.",steps:"1) 15%×30.000\n2) = R$ 4.500"},
+  {tag:"M6·Day trade",q:"Lucro de R$ 10.000 em day trade: IR (20%):",opts:["R$ 1.500","R$ 2.000","R$ 2.250","Isento"],a:1,why:"20%×10.000 = R$ 2.000.",steps:"1) 20%×10.000\n2) = R$ 2.000"},
+  {tag:"M6·Aluguel",q:"Aluguel recebido de PESSOA FÍSICA é recolhido via:",opts:["Retenção na fonte","Carnê-leão mensal","DARF trimestral","ISS"],a:1,why:"Aluguel de PF: carnê-leão mensal (ajuste na DAA)."},
+  {tag:"M6·Aluguel",q:"Aluguel pago por PESSOA JURÍDICA à PF tem IR:",opts:["Só no ano seguinte","Retido na fonte","Isento","Via ITBI"],a:1,why:"O aluguel pago por PJ é retido na fonte."},
+  {tag:"M6·Isenção",q:"É isento de IR na venda de único imóvel:",opts:["Sempre","Se usado para comprar outro residencial em 180 dias (uma vez em 5 anos)","Nunca","Só acima de R$ 5 mi"],a:1,why:"Há isenção ao reinvestir em residencial em 180 dias (regra própria)."},
+  {tag:"M6·Offshore",q:"Uma estrutura offshore 'transparente' implica:",opts:["Tributar só no resgate","Tributar os rendimentos como se fossem da PF","Isenção total","ITBI"],a:1,why:"Na transparência, tributa-se como se fosse a pessoa física."},
+  {tag:"M6·Come-cotas",q:"O come-cotas antecipa o IR em fundos, EXCETO em:",opts:["Fundos de ações","Fundos de RF longo prazo","Multimercado","Curto prazo"],a:0,why:"Fundos de ações não têm come-cotas."},
+  {tag:"M6·Simples",q:"No Simples, os dividendos distribuídos ao sócio são:",opts:["Tributados a 15%","Isentos de IR","Progressivos","Exclusivos"],a:1,why:"Dividendos são isentos; o pró-labore é que é tributado."},
+  {tag:"M6·Ganho capital",q:"Alíquota de ganho de capital sobe para 17,5% na faixa acima de:",opts:["R$ 1 mi","R$ 5 mi","R$ 10 mi","R$ 30 mi"],a:1,why:"Acima de R$ 5 mi começa a progressividade (17,5% etc.)."},
+  {tag:"M6·Carnê-leão",q:"O carnê-leão é usado para tributar:",opts:["Salário CLT","Rendimentos de PF/exterior sem retenção","Dividendos","Poupança"],a:1,why:"O carnê-leão recolhe rendimentos sem retenção (autônomo, aluguel PF, exterior)."},
+  {tag:"M6·FII",q:"O ganho de capital na venda de cotas de FII por PF é tributado a:",opts:["Isento","20%","15%","27,5%"],a:1,why:"O ganho de capital em cotas de FII é 20%."},
+  {tag:"M6·ISS",q:"O imposto sobre serviços (ISS) é de competência:",opts:["Federal","Estadual","Municipal","Do INSS"],a:2,why:"O ISS é municipal."},
+  {tag:"M6·ICMS",q:"O imposto sobre circulação de mercadorias (ICMS) é de competência:",opts:["Federal","Estadual","Municipal","Do cartório"],a:1,why:"O ICMS é estadual."},
+  {tag:"M6·IR fonte",q:"O IR sobre o Tesouro Direto é retido:",opts:["Pelo investidor","No pagamento de cupom/resgate","Nunca","Pelo Município"],a:1,why:"O IR é retido no pagamento de juros/resgate do título."},
+  {tag:"M6·BDR",q:"Dividendos de BDRs recebidos por PF são:",opts:["Isentos","Tributados via carnê-leão (progressiva)","Exclusivos a 15%","Sem IR"],a:1,why:"Dividendos de BDR são tributados (carnê-leão), diferentemente de ações BR."},
+  {tag:"M6·Compensação",q:"Prejuízo em fundo de ações pode compensar:",opts:["Ganhos em RF de outro admin","Ganhos futuros em fundos de ações","Aluguel","Dividendos"],a:1,why:"Prejuízos compensam ganhos da mesma natureza (fundos de ações)."},
+  {tag:"M6·Simples",q:"Ultrapassar o limite do Simples em mais de 20% gera:",opts:["Nada","Exclusão retroativa ao início da atividade","Multa fixa","Isenção"],a:1,why:"Excesso acima de 20% exclui retroativamente ao início."},
+  {tag:"M6·Holding",q:"Transferir imóveis a uma holding p/ integralizar capital, pelo custo declarado:",opts:["Sempre gera ganho de capital","Pode não gerar ganho se pelo valor de custo","Gera ITCMD","É proibido"],a:1,why:"Integralização pelo valor de custo pode não apurar ganho de capital."},
+  {tag:"M6·Exterior",q:"Rendimentos de aluguel de imóvel no exterior (PF residente):",opts:["Isentos","Carnê-leão no mês seguinte ao recebimento","Só no ano seguinte","Retido na fonte BR"],a:1,why:"Recolhe carnê-leão até o mês seguinte ao recebimento."},
+  {tag:"M6·Regimes",q:"Empresa de serviços com margem baixa e muitos custos tende a preferir:",opts:["Simples","Lucro Presumido","Lucro Real","MEI"],a:2,why:"Com margem baixa/custos altos, o Lucro Real costuma ser vantajoso."},
+  {tag:"M6·Isenção",q:"A poupança e a LCI têm em comum, para PF:",opts:["IR de 15%","Isenção de IR","Come-cotas","IOF alto"],a:1,why:"Ambas são isentas de IR para pessoa física."}]},
  {id:7,nome:"Patrimonial & Sucessório",emoji:"⚖️",questions:[
-  {tag:"M7·Regime [472015]",q:"Para alterar o regime de bens do casamento, o CFP® deve informar que:",opts:["Ambos devem concordar e é obrigatória autorização judicial","Só um assina, com autorização judicial","Pode ser extrajudicial","O regime é imutável"],a:0,why:"A alteração exige concordância de AMBOS e autorização judicial."},
-  {tag:"M7·Trust [475003]",q:"O Trust é:",opts:["O beneficiário de um settlor","Uma aplicação financeira","Essencialmente um contrato","Uma instituição financeira"],a:2,why:"O Trust é, essencialmente, um contrato/relação fiduciária (settlor, trustee, beneficiários)."},
-  {tag:"M7·Exclusão [473006]",q:"São excluídos da sucessão os herdeiros que:",opts:["Acusaram em juízo o autor da herança","Foram autores/partícipes de homicídio doloso contra o autor da herança","Cometeram difamação","Inibiram o autor de dispor dos bens"],a:1,why:"Excluem-se por indignidade os autores/partícipes de homicídio doloso contra o autor da herança."},
-  {tag:"M7·Habitação [473022]",q:"Sobre a sucessão legítima: ao cônjuge é assegurado o direito real de habitação sobre o imóvel de residência da família, se for o único a inventariar. Está:",opts:["Correto","Incorreto","Só p/ comunhão universal","Só se houver testamento"],a:0,why:"O direito real de habitação é assegurado ao cônjuge, independentemente do regime, sobre o único imóvel residencial."},
-  {tag:"M7·Vacante [473007]",q:"Não havendo herdeiros nem testamento, a herança se devolve:",opts:["Ao cartório","Ao Município/DF (ou União em território federal)","Aos credores","Ao inventariante"],a:1,why:"Herança vacante devolve-se ao Município/DF (ou União se em território federal)."},
-  {tag:"M7·Testamenteiro [474032]",q:"Pode ser testamenteiro:",opts:["Apenas parente do testador residente no país","Qualquer pessoa capaz, inclusive amigo residente no exterior, se aceitar o encargo","Apenas advogado","Apenas herdeiro necessário"],a:1,why:"Qualquer pessoa capaz pode ser testamenteiro, inclusive amigo residente no exterior, aceitando o encargo."},
-  {tag:"M7·Transmissão [476001]",q:"Segundo o Código Civil, a herança transmite-se aos herdeiros no momento da:",opts:["Abertura do inventário","Morte, no local do último domicílio","Homologação da partilha","Publicação de editais"],a:1,why:"A herança transmite-se no momento da morte; a sucessão abre-se no último domicílio do falecido."},
-  {tag:"M7·Inventário [473056]",q:"Sobre inventário extrajudicial: só pode ser realizado se todos os herdeiros forem maiores e capazes e não houver litígio. Havendo renúncia/dissenso, não cabe. Está:",opts:["Só o item I","Só II e IV","Correto (I, III e IV)","Todos incorretos"],a:2,why:"Requisitos: herdeiros maiores e capazes, consenso na partilha; testamento/litígio podem impedir."},
-  {tag:"M7·Legítima",q:"Um patrimônio de R$ 800.000,00 será partilhado. A parte legítima (reservada aos herdeiros necessários) é:",opts:["R$ 200.000,00","R$ 400.000,00","R$ 600.000,00","R$ 800.000,00"],a:1,why:"A legítima é 50% do patrimônio: 50% de 800.000 = R$ 400.000,00.",steps:"1) A legítima é 50% do patrimônio (herdeiros necessários).\n2) = 50% × 800.000\n3) = R$ 400.000,00 (os outros 50% são a parte disponível)"},
-  {tag:"M7·ITCMD",q:"Numa herança de R$ 600.000,00, com alíquota de ITCMD de 4%, o imposto estadual devido é:",opts:["R$ 24.000,00","R$ 60.000,00","R$ 4.000,00","R$ 12.000,00"],a:0,why:"ITCMD = 4% × 600.000 = R$ 24.000,00 (imposto estadual sobre herança).",steps:"1) ITCMD = alíquota × valor da herança\n2) = 4% × 600.000\n3) = R$ 24.000,00 (imposto estadual)"},
-  {tag:"M7·Partilha",q:"Da parte legítima de R$ 400.000,00, dividida igualmente entre 4 filhos, cada um recebe:",opts:["R$ 200.000,00","R$ 100.000,00","R$ 50.000,00","R$ 400.000,00"],a:1,why:"400.000 ÷ 4 = R$ 100.000,00 por filho.",steps:"1) Cada filho = legítima ÷ nº de filhos\n2) = 400.000 ÷ 4\n3) = R$ 100.000,00"},
-  {tag:"M7·Meação",q:"No regime de comunhão parcial, sobre os bens comuns de R$ 1.000.000,00, a meação do cônjuge sobrevivente é:",opts:["R$ 250.000,00","R$ 500.000,00","R$ 1.000.000,00","R$ 0,00"],a:1,why:"A meação do cônjuge é 50% dos bens comuns: R$ 500.000,00 (isso não é herança).",steps:"1) A meação é 50% dos bens comuns e pertence ao cônjuge (não é herança).\n2) = 50% × 1.000.000\n3) = R$ 500.000,00"}]},
+  {tag:"M7·Abertura",q:"A abertura da sucessão (transmissão da herança) ocorre:",opts:["No inventário","No momento da morte (art. 1.784)","Na partilha","No testamento"],a:1,why:"A herança transmite-se aos herdeiros no momento da morte."},
+  {tag:"M7·Legítima",q:"A parte legítima (herdeiros necessários) corresponde a:",opts:["25%","50%","75%","100%"],a:1,why:"A legítima é 50%; os outros 50% são disponíveis."},
+  {tag:"M7·Disponível",q:"A parte disponível do patrimônio é de:",opts:["25%","50%","75%","0%"],a:1,why:"50% é a parte disponível (para testar livremente)."},
+  {tag:"M7·Herdeiros",q:"São herdeiros necessários:",opts:["Só amigos","Descendentes, ascendentes e cônjuge","Só o Estado","Sobrinhos"],a:1,why:"Necessários: descendentes, ascendentes e cônjuge."},
+  {tag:"M7·Testamento",q:"O testamento produz efeitos:",opts:["Em vida","Após a morte, respeitando a legítima","Só com doação","No casamento"],a:1,why:"O testamento tem efeitos após a morte e respeita a legítima."},
+  {tag:"M7·Trust",q:"O Trust é, essencialmente:",opts:["Uma aplicação","Uma relação fiduciária (contrato)","Um imposto","Um banco"],a:1,why:"O Trust é um contrato/relação fiduciária (settlor, trustee, beneficiários)."},
+  {tag:"M7·Regime",q:"Alterar o regime de bens do casamento exige:",opts:["Só um cônjuge","Ambos concordarem + autorização judicial","Cartório apenas","Nada"],a:1,why:"Exige a concordância de ambos e autorização judicial."},
+  {tag:"M7·Holding",q:"A holding familiar serve para:",opts:["Aumentar impostos","Concentrar patrimônio e facilitar gestão/sucessão","Cobrar aluguel do Estado","Emitir ações públicas"],a:1,why:"Facilita a gestão e a sucessão patrimonial."},
+  {tag:"M7·Inventário",q:"O inventário extrajudicial é possível quando:",opts:["Há menores","Todos maiores/capazes e consenso","Há litígio","Sempre"],a:1,why:"Exige herdeiros maiores/capazes e consenso (sem litígio)."},
+  {tag:"M7·Vacância",q:"Não havendo herdeiros nem testamento, a herança vai para:",opts:["O cartório","O Município/DF (ou União em território)","Os credores","O inventariante"],a:1,why:"Herança vacante devolve-se ao Município/DF."},
+  {tag:"M7·Comunhão parcial",q:"Na comunhão parcial, comunicam-se os bens:",opts:["Anteriores ao casamento","Adquiridos onerosamente na constância","Recebidos por herança","Doados com incomunicabilidade"],a:1,why:"Comunicam-se os adquiridos onerosamente durante o casamento."},
+  {tag:"M7·Meação",q:"A meação do cônjuge (bens comuns) é:",opts:["Herança","50% dos bens comuns, por direito próprio","25%","Do Estado"],a:1,why:"A meação é 50% dos bens comuns e NÃO é herança."},
+  {tag:"M7·Representação",q:"O direito de representação ocorre quando:",opts:["O herdeiro renuncia","Um herdeiro é pré-morto e seus filhos o representam","Não há herdeiros","Há testamento"],a:1,why:"Descendentes representam o herdeiro pré-morto (por estirpe)."},
+  {tag:"M7·Renúncia",q:"Quem renuncia à herança:",opts:["Escolhe quem recebe","É tratado como se nunca tivesse herdado","Recebe metade","Paga a dívida"],a:1,why:"A renúncia pura afasta o renunciante; sua parte acresce aos demais."},
+  {tag:"M7·Indignidade",q:"Excluído por indignidade é o herdeiro que:",opts:["Discorda da partilha","Foi autor de homicídio doloso contra o autor da herança","Mora longe","Renunciou"],a:1,why:"Homicídio doloso contra o autor exclui por indignidade."},
+  {tag:"M7·Testamenteiro",q:"Pode ser testamenteiro:",opts:["Só advogado","Qualquer pessoa capaz que aceite o encargo","Só herdeiro","Só parente"],a:1,why:"Qualquer pessoa capaz pode ser testamenteiro, se aceitar."},
+  {tag:"M7·Habitação",q:"O direito real de habitação do cônjuge recai sobre:",opts:["Qualquer imóvel","O único imóvel residencial da família","Imóveis comerciais","Contas bancárias"],a:1,why:"Garante moradia no único imóvel residencial da família."},
+  {tag:"M7·Seguro vida",q:"O capital de seguro de vida, na sucessão:",opts:["Entra no inventário","Vai direto ao beneficiário, com liquidez","Paga ITCMD sempre","É penhorável"],a:1,why:"Vai direto ao beneficiário, fora do inventário."},
+  {tag:"M7·Doação",q:"A doação de ascendente a descendente é, em regra:",opts:["Livre e sem colação","Adiantamento da legítima (colação)","Proibida","Isenta de ITCMD"],a:1,why:"É adiantamento da legítima e deve ser colacionada."},
+  {tag:"M7·Reversão",q:"Na doação com cláusula de reversão, se o donatário morre antes:",opts:["Vai aos herdeiros dele","Retorna ao doador","Vira do Estado","É vendida"],a:1,why:"O bem retorna ao doador (reversão)."},
+  {tag:"M7·Usufruto",q:"No usufruto, com a morte do usufrutuário:",opts:["O usufruto passa aos herdeiros","O usufruto se extingue e a propriedade se consolida no nu-proprietário","Vira do Estado","Nada muda"],a:1,why:"O usufruto extingue-se; o nu-proprietário consolida a propriedade."},
+  {tag:"M7·Pacto",q:"O pacto antenupcial, para regime diverso do legal, deve ser:",opts:["Verbal","Por escritura pública","Por e-mail","Dispensável"],a:1,why:"O pacto antenupcial exige escritura pública."},
+  {tag:"M7·Separação obrig.",q:"Casamento após os 70 anos impõe o regime de:",opts:["Comunhão universal","Separação obrigatória de bens","Comunhão parcial","Participação final"],a:1,why:"Acima de 70 anos, o regime é o de separação obrigatória."},
+  {tag:"M7·Colaterais",q:"Herdam por direito de representação, na linha colateral:",opts:["Todos os primos","Os filhos de irmão pré-morto (sobrinhos)","Os tios","Ninguém"],a:1,why:"Na colateral, a representação alcança sobrinhos (filhos de irmão pré-morto)."},
+  {tag:"M7·Fundação",q:"A fundação constitui-se pela:",opts:["Compra de ações","Destinação de patrimônio a uma finalidade","Emissão de debêntures","Doação ao Estado"],a:1,why:"Fundação: destinação de patrimônio a uma finalidade específica."},
+  {tag:"M7·ITCMD comp.",q:"O ITCMD sobre imóvel é devido ao Estado:",opts:["Do domicílio do falecido","Onde o imóvel está localizado","Da capital","Da União"],a:1,why:"Sobre imóveis, o ITCMD é do Estado da localização do bem."},
+  {tag:"M7·ITCMD comp.",q:"O ITCMD sobre bens móveis/contas é devido ao Estado:",opts:["Onde o imóvel está","Do domicílio do falecido (inventário)","Da capital","Da União"],a:1,why:"Sobre móveis, recolhe-se onde se processa o inventário/domicílio."},
+  {tag:"M7·Dívidas",q:"As dívidas do falecido são pagas:",opts:["Pelos herdeiros com bens próprios","Nas forças da herança (limite do patrimônio deixado)","Pelo Estado","Nunca"],a:1,why:"Responde-se nas forças da herança (limite dos bens deixados)."},
+  {tag:"M7·Legítima",q:"Patrimônio de R$ 900.000: a legítima é:",opts:["R$ 225.000","R$ 450.000","R$ 675.000","R$ 900.000"],a:1,why:"50% de 900.000 = R$ 450.000.",steps:"1) 50%×900.000\n2) = R$ 450.000"},
+  {tag:"M7·Partilha",q:"Legítima de R$ 400.000 dividida entre 4 filhos: cada um:",opts:["R$ 200.000","R$ 100.000","R$ 50.000","R$ 400.000"],a:1,why:"400.000/4 = R$ 100.000.",steps:"1) 400.000/4\n2) = R$ 100.000"},
+  {tag:"M7·Meação",q:"Bens comuns de R$ 1.000.000: a meação do cônjuge é:",opts:["R$ 250.000","R$ 500.000","R$ 1.000.000","R$ 0"],a:1,why:"50% dos bens comuns = R$ 500.000 (não é herança).",steps:"1) 50%×1.000.000\n2) = R$ 500.000"},
+  {tag:"M7·ITCMD",q:"Herança de R$ 600.000 com ITCMD de 6%: imposto:",opts:["R$ 36.000","R$ 60.000","R$ 6.000","R$ 12.000"],a:0,why:"6%×600.000 = R$ 36.000.",steps:"1) 0,06×600.000\n2) = R$ 36.000"},
+  {tag:"M7·Representação",q:"Herança de R$ 300.000; herdeiro pré-morto com 3 filhos: cada neto recebe (por estirpe):",opts:["R$ 100.000","R$ 300.000","R$ 150.000","R$ 75.000"],a:0,why:"A estirpe (R$ 300.000) divide-se por 3 = R$ 100.000.",steps:"1) Estirpe=300.000\n2) 300.000/3\n3) = R$ 100.000"},
+  {tag:"M7·Disponível",q:"Patrimônio R$ 2.000.000: o máximo testável livremente é:",opts:["R$ 500.000","R$ 1.000.000","R$ 1.500.000","R$ 2.000.000"],a:1,why:"50% (parte disponível) = R$ 1.000.000.",steps:"1) 50%×2.000.000\n2) = R$ 1.000.000"},
+  {tag:"M7·Doação",q:"Doar 60% do patrimônio em vida aos filhos, sem reserva:",opts:["É válido sem restrição","Não pode invadir a legítima dos herdeiros necessários","Isento de ITCMD","Dispensa colação"],a:1,why:"A doação não pode ultrapassar a parte disponível (50%)."},
+  {tag:"M7·Concorrência",q:"Na comunhão parcial, o cônjuge concorre com descendentes sobre:",opts:["A meação","Os bens particulares do falecido","Nada","O usufruto"],a:1,why:"Concorre na herança dos bens particulares do falecido."},
+  {tag:"M7·Inventário",q:"O inventário deve ser aberto, como regra, em até:",opts:["30 dias","60 dias","2 anos","10 anos"],a:1,why:"Como regra, abre-se em até 60 dias (prazo pode variar por Estado)."},
+  {tag:"M7·Sucessão",q:"A ordem de vocação hereditária começa por:",opts:["Cônjuge","Descendentes","Ascendentes","Colaterais"],a:1,why:"Primeiro os descendentes (em concorrência com o cônjuge)."},
+  {tag:"M7·Companheiro",q:"Na união estável, o companheiro:",opts:["Não tem direitos","Tem direitos sucessórios similares aos do cônjuge","Só recebe se houver testamento","É excluído"],a:1,why:"O companheiro tem proteção sucessória (equiparada em boa medida)."},
+  {tag:"M7·Incomunicável",q:"Bem recebido com cláusula de incomunicabilidade, na comunhão universal:",opts:["Comunica-se","Não se comunica ao cônjuge","Vira do Estado","É vendido"],a:1,why:"A incomunicabilidade impede a comunhão do bem."},
+  {tag:"M7·Colação",q:"A colação serve para:",opts:["Aumentar a legítima","Igualar as doações em vida entre herdeiros necessários","Pagar ITCMD","Anular o testamento"],a:1,why:"A colação iguala o que foi adiantado a herdeiros necessários."},
+  {tag:"M7·Testamento",q:"Respeitando a legítima, o testamento pode dispor de:",opts:["100%","50% (parte disponível)","25%","0%"],a:1,why:"Só a parte disponível (50%) pode ser livremente testada."},
+  {tag:"M7·Herança jacente",q:"Enquanto não aparecem herdeiros, a herança é chamada:",opts:["Vacante","Jacente","Disponível","Legítima"],a:1,why:"É jacente até declarar-se vacante (sem herdeiros)."},
+  {tag:"M7·Planejamento",q:"Um objetivo do planejamento sucessório é:",opts:["Aumentar litígios","Reduzir custos/conflitos e dar liquidez","Sonegar ITCMD","Evitar herdeiros"],a:1,why:"Busca reduzir custos, conflitos e prover liquidez."},
+  {tag:"M7·Doação reserva",q:"Doação com reserva de usufruto permite ao doador:",opts:["Perder o bem já","Continuar usufruindo em vida","Não pagar nada","Vender do donatário"],a:1,why:"O doador mantém o usufruto (uso/renda) em vida."},
+  {tag:"M7·ITCMD alíq.",q:"As alíquotas de ITCMD são definidas:",opts:["Pela União","Por cada Estado","Pelo Município","Pelo cartório"],a:1,why:"Cada Estado define suas alíquotas de ITCMD."},
+  {tag:"M7·Herdeiro test.",q:"Herdeiro testamentário é aquele:",opts:["Necessário por lei","Nomeado no testamento (parte disponível)","Sempre o cônjuge","O Estado"],a:1,why:"É nomeado no testamento, dentro da parte disponível."},
+  {tag:"M7·Renúncia transl.",q:"Na renúncia translativa (cessão), há:",opts:["Só um ato","Duas incidências: recebe e depois transmite (ITCMD/ITBI)","Isenção total","Nada"],a:1,why:"Renunciar 'em favor de alguém' equivale a receber e transmitir."},
+  {tag:"M7·Comoriência",q:"Comoriência é quando duas pessoas:",opts:["Casam","Morrem sem se saber a ordem (presumem-se simultâneas)","Herdam juntas","Doam"],a:1,why:"Sem prova da ordem, presumem-se mortes simultâneas."},
+  {tag:"M7·Partilha",q:"A partilha extrajudicial é feita:",opts:["Sempre em juízo","Por escritura pública em cartório (havendo consenso)","Por e-mail","Sem advogado"],a:1,why:"Havendo consenso e capacidade, faz-se por escritura em cartório."}]},
  {id:8,nome:"Psicologia",emoji:"🧠",questions:[
-  {tag:"M8·Ancoragem [202644]",q:"Comprou a R$30, caiu p/ R$36 (após R$45), segura p/ vender no preço anterior. Heurística:",opts:["Disponibilidade","Representatividade","Ancoragem","Aversão à perda"],a:2,why:"Fixou (ancorou) a decisão num preço de referência anterior."},
-  {tag:"M8·Aversão [202664]",q:"'Não perdi dinheiro nessas ações, pois nem as vendi.' Viés da:",opts:["Representatividade","Ilusão de controle","Aversão à perda","Excesso de confiança"],a:2,why:"Evitar realizar o prejuízo para não 'sentir' a perda é Aversão à Perda."},
-  {tag:"M8·Controle [481005]",q:"Prefere escolher ele mesmo as ações crendo que assim se valorizarão mais. Viés de:",opts:["Ilusão de controle","Disponibilidade","Excesso de confiança","Ancoragem"],a:0,why:"Achar que a própria escolha influencia o resultado do mercado é Ilusão de Controle."},
-  {tag:"M8·Disponibilidade [202643]",q:"Não investir num FII por associá-lo à crise imobiliária dos EUA (evento recente) é heurística da:",opts:["Disponibilidade","Representatividade","Ancoragem","Falta de confiança"],a:0,why:"Julgar pela facilidade de lembrar um evento recente/marcante = Disponibilidade."},
-  {tag:"M8·Manada [202676]",q:"Comprar uma ação só porque 'todo mundo está comprando', ignorando os fundamentos, é:",opts:["Movimento de Manada","Saliência","Status Quo","Desconto Hiperbólico"],a:0,why:"Seguir a maioria sem análise própria é o Efeito Manada."},
-  {tag:"M8·StatusQuo [202680]",q:"Investidor com carteira negativa que não deseja mexer nela por não querer analisar opções apresenta o viés:",opts:["Ancoragem","Saliência","Status Quo","Aversão à perda"],a:2,why:"Preferir manter tudo como está (inércia) é o viés de Status Quo."},
-  {tag:"M8·Framing [202655]",q:"O efeito de enquadramento (Framing) descreve como a decisão é afetada pela forma como o problema é apresentado, tornando as pessoas avessas ao risco em ganhos e propensas ao risco em perdas. Está:",opts:["Correto","Invertido","Não existe","Só p/ renda fixa"],a:0,why:"Framing: avessos ao risco no campo dos ganhos e propensos ao risco no campo das perdas."},
-  {tag:"M8·Confiança [202696]",q:"Espera-se de um investidor com excesso de confiança que: I) Faça a própria gestão. II) Opere com mais frequência.",opts:["III","I e II","I","II"],a:1,why:"O excesso de confiança leva a gerir sozinho e operar em excesso (mais custos)."},
-  {tag:"M8·Perspectiva [481009]",q:"Segundo a Teoria da Perspectiva, o investidor tende a ser:",opts:["Propenso ao risco em ganhos","Avesso ao risco em perdas","Propenso ao risco em perdas","Neutro em ganhos"],a:2,why:"Na Teoria da Perspectiva, há propensão ao risco no campo das perdas (para tentar recuperar)."}]}
+  {tag:"M8·Heurística",q:"Heurísticas de julgamento (Kahneman) são:",opts:["Cálculos exatos","Atalhos mentais que podem gerar vieses","Leis tributárias","Índices de bolsa"],a:1,why:"São atalhos mentais que simplificam decisões e geram vieses."},
+  {tag:"M8·Ancoragem",q:"Fixar a decisão num preço de referência anterior é viés de:",opts:["Disponibilidade","Ancoragem","Aversão à perda","Manada"],a:1,why:"Ancoragem: apega-se a um valor de referência."},
+  {tag:"M8·Disponibilidade",q:"Julgar pela facilidade de lembrar um evento recente é:",opts:["Ancoragem","Disponibilidade","Representatividade","Controle"],a:1,why:"Disponibilidade: peso a exemplos recentes/marcantes."},
+  {tag:"M8·Representatividade",q:"Generalizar a partir de pequena amostra/estereótipo é:",opts:["Ancoragem","Representatividade","Aversão à perda","Manada"],a:1,why:"Representatividade: generaliza a partir de amostras pequenas."},
+  {tag:"M8·Aversão perda",q:"'Não vendo no prejuízo, só quando voltar ao que paguei' revela:",opts:["Excesso de confiança","Aversão à perda","Disponibilidade","Ancoragem"],a:1,why:"A dor da perda leva a segurar o ativo perdedor."},
+  {tag:"M8·Excesso conf.",q:"Operar demais achando que sempre acerta é:",opts:["Aversão à perda","Excesso de confiança","Ancoragem","Manada"],a:1,why:"Excesso de confiança: superestima o próprio acerto."},
+  {tag:"M8·Controle",q:"Achar que a própria escolha influencia o mercado é:",opts:["Ilusão de controle","Disponibilidade","Representatividade","Ancoragem"],a:0,why:"Ilusão de controle: crê influenciar o resultado."},
+  {tag:"M8·Manada",q:"Comprar 'porque todo mundo está comprando' é:",opts:["Ancoragem","Efeito manada","Aversão à perda","Status quo"],a:1,why:"Efeito manada: seguir a maioria sem análise própria."},
+  {tag:"M8·Status quo",q:"Não mexer na carteira por inércia/comodismo é viés de:",opts:["Manada","Status quo","Ancoragem","Controle"],a:1,why:"Status quo: preferência por manter tudo como está."},
+  {tag:"M8·Framing",q:"O efeito de enquadramento (framing) diz que a decisão muda conforme:",opts:["O CPF","A forma como o problema é apresentado","O clima","A idade"],a:1,why:"Framing: a apresentação do problema altera a escolha."},
+  {tag:"M8·Perspectiva",q:"Na Teoria da Perspectiva, no campo das PERDAS a pessoa tende a ser:",opts:["Avessa ao risco","Propensa ao risco","Neutra","Racional plena"],a:1,why:"Nas perdas, há propensão ao risco (para tentar recuperar)."},
+  {tag:"M8·Perspectiva",q:"Na Teoria da Perspectiva, no campo dos GANHOS a pessoa tende a ser:",opts:["Propensa ao risco","Avessa ao risco","Neutra","Alavancada"],a:1,why:"Nos ganhos, há aversão ao risco (garante o ganho)."},
+  {tag:"M8·Familiaridade",q:"Concentrar só em ações da própria empresa (o que conhece) é viés de:",opts:["Familiaridade","Ancoragem","Manada","Controle"],a:0,why:"Familiaridade: preferir o conhecido, concentrando risco."},
+  {tag:"M8·Contab. mental",q:"Gastar o 13º/bônus mais facilmente que o salário é:",opts:["Ancoragem","Contabilidade mental","Manada","Framing"],a:1,why:"Contabilidade mental: trata o dinheiro conforme a 'origem'."},
+  {tag:"M8·Confirmação",q:"Buscar só notícias que confirmam a própria opinião é:",opts:["Armadilha da confirmação","Disponibilidade","Ancoragem","Controle"],a:0,why:"Armadilha da confirmação: valoriza o que confirma a crença."},
+  {tag:"M8·Desconto",q:"Preferir ganho pequeno agora a um maior no futuro é:",opts:["Desconto hiperbólico","Ancoragem","Manada","Framing"],a:0,why:"Desconto hiperbólico: super-valoriza o presente."},
+  {tag:"M8·Racionalidade",q:"Nas Finanças Comportamentais, o investidor é:",opts:["Sempre racional","Racionalidade limitada (comete erros sistemáticos)","Sem emoção","Onisciente"],a:1,why:"Assume racionalidade limitada e vieses sistemáticos."},
+  {tag:"M8·Disposição",q:"Vender rápido os ganhadores e segurar os perdedores é o:",opts:["Efeito disposição","Framing","Ancoragem","Controle"],a:0,why:"Efeito disposição: realiza ganhos cedo e adia perdas."},
+  {tag:"M8·Sensibilização",q:"Usar exemplos do dia a dia p/ o cliente entender/decidir melhor é:",opts:["Aumentar complexidade","Criar sentido (sensibilização)","Reduzir autonomia","Manada"],a:1,why:"Conectar à realidade do cliente facilita a decisão."},
+  {tag:"M8·Endowment",q:"Valorizar demais um ativo só por já possuí-lo é o:",opts:["Efeito posse (endowment)","Framing","Manada","Desconto"],a:0,why:"Endowment: superestima o que já se tem."},
+  {tag:"M8·Escassez",q:"Comprar 'porque restam poucas unidades/acaba já' é heurística da:",opts:["Escassez","Ancoragem","Controle","Manada"],a:0,why:"Escassez: a limitação percebida acelera a decisão."},
+  {tag:"M8·Compromisso",q:"Continuar investindo num negócio ruim 'porque já coloquei muito' é:",opts:["Escalada do compromisso","Ancoragem","Framing","Manada"],a:0,why:"Escalada do compromisso (custo afundado)."},
+  {tag:"M8·Idoso",q:"Ao notar declínio cognitivo num cliente idoso, o CFP® deve:",opts:["Ignorar","Simplificar a comunicação e revalidar o entendimento","Decidir por ele","Encerrar tudo"],a:1,why:"Simplificar, revalidar e observar necessidade de apoio."},
+  {tag:"M8·Impulsivo",q:"Para cliente impulsivo (age no susto do mercado), recomenda-se:",opts:["Operar mais","Aportes automáticos e estratégia de longo prazo","Alavancar","Day trade"],a:1,why:"Automatizar e focar no longo prazo reduz decisões impulsivas."},
+  {tag:"M8·Racional",q:"Preciﬁcar o ativo pelo valor presente dos fluxos é premissa da:",opts:["Finanças comportamentais","Teoria tradicional (racional)","Heurística","Manada"],a:1,why:"É premissa da teoria tradicional (racionalidade)."},
+  {tag:"M8·Ancoragem",q:"Recusar vender abaixo do preço de compra, ignorando os fundamentos, mistura:",opts:["Ancoragem e aversão à perda","Só manada","Só framing","Só controle"],a:0,why:"Combina ancoragem (preço) e aversão à perda."},
+  {tag:"M8·Manada",q:"O efeito manada tende a amplificar:",opts:["A estabilidade","Bolhas e pânicos de mercado","A liquidez sempre","Os dividendos"],a:1,why:"A manada amplifica altas (bolhas) e quedas (pânico)."},
+  {tag:"M8·Arquitetura",q:"Organizar as opções para facilitar boas escolhas é:",opts:["Arquitetura de escolhas (nudge)","Manada","Ancoragem","Framing negativo"],a:0,why:"Arquitetura de escolhas: 'empurrões' que ajudam a decidir."},
+  {tag:"M8·Saliência",q:"Dar peso excessivo a uma informação que 'salta aos olhos' é:",opts:["Saliência","Status quo","Controle","Desconto"],a:0,why:"Saliência: destaque exagerado ao que chama atenção."},
+  {tag:"M8·Planejamento",q:"Subestimar prazos/custos de um projeto por otimismo é a:",opts:["Falácia do planejamento","Ancoragem","Manada","Endowment"],a:0,why:"Falácia do planejamento: otimismo irreal sobre prazos/custos."},
+  {tag:"M8·Perfil",q:"Uma frase sobre querer 'alto retorno' basta para definir o perfil?",opts:["Sim","Não, é preciso avaliar a reação a perdas e a capacidade","Sempre","Só p/ idosos"],a:1,why:"Falar em retorno não basta; avalia-se tolerância e capacidade."},
+  {tag:"M8·Ancoragem",q:"Estimar o valor de uma ação 'colando' no preço do concorrente é:",opts:["Ancoragem","Manada","Controle","Framing"],a:0,why:"Ancoragem: usa uma referência para estimar."},
+  {tag:"M8·Disponibilidade",q:"Evitar um setor por lembrar de uma crise antiga é:",opts:["Disponibilidade","Ancoragem","Controle","Endowment"],a:0,why:"Disponibilidade: peso a um evento marcante lembrado."},
+  {tag:"M8·Aversão perda",q:"A dor de perder R$ 100 é, em geral:",opts:["Menor que o prazer de ganhar R$ 100","Maior que o prazer de ganhar R$ 100","Igual","Zero"],a:1,why:"A aversão à perda faz a dor superar o prazer equivalente."},
+  {tag:"M8·Manada",q:"Bolhas de ativos são reforçadas por qual viés coletivo?",opts:["Status quo","Efeito manada","Endowment","Framing"],a:1,why:"A manada reforça bolhas (e pânicos)."},
+  {tag:"M8·Excesso",q:"Girar demais a carteira (muitos trades) costuma:",opts:["Aumentar o retorno líquido","Reduzir o retorno por custos","Não ter efeito","Isentar de IR"],a:1,why:"Excesso de operações eleva custos e reduz o retorno."},
+  {tag:"M8·Framing",q:"Apresentar '90% de aprovados' em vez de '10% reprovados' explora:",opts:["Ancoragem","Framing","Manada","Controle"],a:1,why:"É enquadramento (framing) da mesma informação."},
+  {tag:"M8·Status quo",q:"Cliente que 'deixa como está' mesmo com carteira ruim tem:",opts:["Excesso de confiança","Status quo","Manada","Disponibilidade"],a:1,why:"Status quo: inércia mesmo diante de opções melhores."},
+  {tag:"M8·Controle",q:"Preferir escolher as próprias ações crendo em melhor desempenho é:",opts:["Ilusão de controle","Ancoragem","Manada","Framing"],a:0,why:"Ilusão de controle."},
+  {tag:"M8·Perspectiva",q:"A Teoria da Perspectiva foi proposta por:",opts:["Markowitz","Kahneman e Tversky","Sharpe","Gordon"],a:1,why:"Kahneman e Tversky formularam a Teoria da Perspectiva."},
+  {tag:"M8·Contab. mental",q:"Separar 'dinheiro da viagem' e 'da reserva' em potes é:",opts:["Ancoragem","Contabilidade mental","Manada","Controle"],a:1,why:"Contabilidade mental: potes separados por finalidade."},
+  {tag:"M8·Confirmação",q:"Ler só relatórios que apoiam a decisão já tomada é:",opts:["Armadilha da confirmação","Disponibilidade","Ancoragem","Endowment"],a:0,why:"Confirmação: busca o que confirma a crença."},
+  {tag:"M8·Endowment",q:"Pedir preço acima do mercado por um bem 'porque é meu' é:",opts:["Efeito posse","Manada","Framing","Desconto"],a:0,why:"Endowment: superavalia o que se possui."},
+  {tag:"M8·Escassez",q:"'Últimas cotas! Oferta encerra hoje' explora o viés de:",opts:["Escassez","Ancoragem","Status quo","Controle"],a:0,why:"Escassez: urgência percebida acelera a decisão."},
+  {tag:"M8·Racional",q:"Comprar um ativo caro só porque subiu muito, sem análise, indica:",opts:["Racionalidade plena","Racionalidade limitada e vieses","Eficiência","Neutralidade"],a:1,why:"Indica racionalidade limitada influenciada por vieses."},
+  {tag:"M8·Nudge",q:"Definir a previdência como opção 'padrão' que eleva adesão é:",opts:["Nudge (arquitetura de escolha)","Framing negativo","Manada","Ancoragem"],a:0,why:"Nudge: o padrão orienta a escolha (mais adesão)."},
+  {tag:"M8·Disposição",q:"Segurar perdedores esperando 'voltar' e vender ganhadores cedo é:",opts:["Efeito disposição","Framing","Manada","Endowment"],a:0,why:"Efeito disposição."},
+  {tag:"M8·Simplicidade",q:"Comunicar com exemplos simples ajuda porque reduz:",opts:["A adesão","A sobrecarga cognitiva do cliente","O retorno","O risco de mercado"],a:1,why:"Simplificar reduz a sobrecarga e melhora a decisão."},
+  {tag:"M8·Perfil",q:"Capacidade de risco difere de tolerância porque:",opts:["São iguais","Capacidade é objetiva (financeira); tolerância é emocional","Só idosos têm","Não existe"],a:1,why:"Capacidade (financeira/objetiva) ≠ tolerância (emocional)."},
+  {tag:"M8·Ancoragem",q:"IPO do concorrente a R$ 10 que virou R$ 50 faz o investidor 'ancorar' em:",opts:["R$ 50 como referência futura","R$ 0","No PIB","Na Selic"],a:0,why:"Ancora no valor do concorrente como referência."}]}
 ];
 
 /* ===== APRENDER (progressivo) ===== */
@@ -732,40 +1024,7 @@ const BADGES=[
 let S=load()||null, cur={}, duel=null, flash={}, mem={}, er={};
 function load(){try{return JSON.parse(localStorage.getItem('cfpquest'))}catch(e){return null}}
 function save(){localStorage.setItem('cfpquest',JSON.stringify(S));syncUser();}
-function newUser(name,email){return {name,email,xp:0,diamonds:0,streak:1,hearts:MAX_HEARTS,completed:[],lessons:0,errors:[],goal:10,duelWins:0,duelLosses:0,studied:0,avatar:Math.floor(Math.random()*AVATARS.length),progress:{},chatted:0,sound:true,volume:0.65,vibration:true};}
-/* SOM E VIBRAÇÃO (nova melhoria) */
-let audioCtx=null;
-function sound(type){
-  if(!S||S.sound===false)return;
-  try{
-    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-    const vol=(S.volume!=null?S.volume:0.65);
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.connect(g);g.connect(audioCtx.destination);
-    const map={click:[440,0.05],correct:[660,0.14],wrong:[180,0.18],win:[880,0.22],coin:[990,0.08]};
-    const [freq,dur]=map[type]||map.click;
-    o.frequency.value=freq;o.type=type==='wrong'?'sawtooth':'sine';
-    g.gain.setValueAtTime(vol*0.25,audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
-    o.start();o.stop(audioCtx.currentTime+dur);
-  }catch(e){}
-  if(S.vibration!==false&&navigator.vibrate){try{navigator.vibrate(type==='wrong'?80:20);}catch(e){}}
-}
-/* CONFETE (nova melhoria) */
-function confetti(){
-  const holder=document.createElement('div');holder.className='confetti';
-  const active=document.querySelector('.screen.active');(active||document.body).appendChild(holder);
-  const colors=['#58cc02','#1cb0f6','#ffc800','#ce82ff','#ff4b4b'];
-  for(let i=0;i<28;i++){
-    const b=document.createElement('i');
-    b.style.left=(Math.random()*100)+'%';
-    b.style.background=colors[i%colors.length];
-    b.style.animationDelay=(Math.random()*0.4)+'s';
-    b.style.animationDuration=(1.1+Math.random()*0.8)+'s';
-    holder.appendChild(b);
-  }
-  setTimeout(()=>holder.remove(),2200);
-}
+function newUser(name,email){return {name,email,xp:0,diamonds:0,streak:1,hearts:MAX_HEARTS,completed:[],lessons:0,errors:[],goal:10,duelWins:0,duelLosses:0,studied:0,avatar:Math.floor(Math.random()*AVATARS.length),progress:{},chatted:0};}
 let RANKUSERS=[]; // preenchido pelo Firebase quando online
 function getUsersLocal(){try{return JSON.parse(localStorage.getItem('cfpquest_users'))||[]}catch(e){return[]}}
 function setUsersLocal(u){localStorage.setItem('cfpquest_users',JSON.stringify(u));}
@@ -779,8 +1038,10 @@ function subscribeRank(){ if(!FB.ready||rankSub)return;rankSub=true;
 }
 function syncUser(){if(!S)return;
   const r={name:S.name,email:S.email,xp:S.xp||0,duelWins:S.duelWins||0,avatar:(S.avatar??null),custom:S.custom||null};
-  if(FB.ready){ const id=S.email.replace(/[^a-z0-9]/gi,'_'); FB.setDoc(FB.doc(FB.db,'users',id),r).catch(()=>{});
-    if(S.authUid){ FB.setDoc(FB.doc(FB.db,'users',S.authUid),S).catch(()=>{}); } }
+  if(FB.ready){ const id=S.email.replace(/[^a-z0-9]/gi,'_');
+    FB.setDoc(FB.doc(FB.db,'users',id),r).catch(()=>{});                          // doc leve p/ ranking
+    FB.setDoc(FB.doc(FB.db,'accounts',id),{name:S.name,pass:S.pass||'',state:S,updated:Date.now()}).catch(()=>{}); // conta completa p/ login
+  }
   else { let us=getUsersLocal();let i=us.findIndex(u=>u.email===S.email); if(i>=0)us[i]=r;else us.push(r); setUsersLocal(us); }
 }
 function initials(n){return (n||'?').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();}
@@ -803,59 +1064,49 @@ function go(id){showScreen(id);document.getElementById('nav').style.display='fle
   if(id==='plans'){renderPlans();}}
 
 /* LOGIN / ONBOARDING */
-let authMode='create';
-function toggleAuthMode(){
-  authMode=authMode==='create'?'enter':'create';
-  document.getElementById('auth-btn').textContent=authMode==='create'?'Criar conta grátis':'Entrar';
-  document.querySelector('#login .muted span.switch').textContent=authMode==='create'?'Entrar':'Criar conta';
-  document.getElementById('in-name').style.display=authMode==='create'?'block':'none';
+/* ===== LOGIN / CADASTRO (com Firebase p/ funcionar entre aparelhos) ===== */
+let authMode='signup';
+function toggleAuth(){ setAuthMode(authMode==='signup'?'login':'signup'); }
+function setAuthMode(m){authMode=m;
+  var nf=document.getElementById('name-field'); if(nf) nf.style.display=(m==='signup')?'block':'none';
+  var b=document.getElementById('auth-btn'); if(b) b.textContent=(m==='signup')?'Criar conta grátis':'Entrar';
+  var s=document.getElementById('auth-switch'); if(s) s.innerHTML=(m==='signup')
+    ? 'Já tem conta? <span class="switch" onclick="toggleAuth()">Entrar</span>'
+    : 'Não tem conta? <span class="switch" onclick="toggleAuth()">Criar conta</span>';
 }
-async function doRegister(){
-  const name=document.getElementById('in-name').value.trim()||'Aluno(a)';
-  const email=(document.getElementById('in-email').value.trim()||'aluno@email.com').toLowerCase();
-  const pass=document.getElementById('in-pass').value;
-  // Sem Firebase Auth disponível: mantém comportamento local original
-  if(!FB.authReady){
-    if(!S){S=newUser(name,email);save();startOnboarding();}else go('home');
-    return;
-  }
-  if(!pass||pass.length<6){toast('A senha precisa ter pelo menos 6 caracteres.');return;}
-  const statusEl=document.getElementById('cloud-status');
-  try{
-    if(authMode==='create'){
-      if(statusEl)statusEl.textContent='🔵 Criando conta…';
-      const cred=await FB.createUserWithEmailAndPassword(FB.auth,email,pass);
-      S=newUser(name,email);
-      await mergeCloudState(cred.user,true);
-      save();startOnboarding();
-    }else{
-      if(statusEl)statusEl.textContent='🔵 Entrando…';
-      const cred=await FB.signInWithEmailAndPassword(FB.auth,email,pass);
-      await mergeCloudState(cred.user,false);
-      save();go('home');
+function updateConnStatus(){var el=document.getElementById('conn-status');if(!el)return;
+  el.innerHTML = FB.ready ? '🟢 Online (sincroniza chat, ranking e duelos)' : '🔵 Offline (modo local — configure o Firebase p/ sincronizar)';
+  el.style.color = FB.ready ? 'var(--verde-esc)' : 'var(--cinza2)';
+}
+async function submitAuth(){
+  const email=(document.getElementById('in-email').value.trim()||'').toLowerCase();
+  const pass=document.getElementById('in-pass').value||'';
+  if(!email){toast('Digite seu e-mail');return;}
+  if(authMode==='login'){
+    if(FB.ready){
+      try{
+        const snap=await FB.getDoc(FB.doc(FB.db,'accounts',email.replace(/[^a-z0-9]/gi,'_')));
+        if(snap.exists()){
+          const acc=snap.data();
+          if(acc.pass && pass && acc.pass!==pass){toast('Senha incorreta');return;}
+          S=acc.state || newUser(acc.name||'Aluno(a)',email);
+          S.email=email; if(S.diamonds==null)S.diamonds=0; if(!S.progress)S.progress={}; if(S.hearts==null)S.hearts=MAX_HEARTS;
+          save(); toast('Bem-vindo de volta, '+(S.name||'Aluno').split(' ')[0]+'! 👋'); go('home'); return;
+        } else { toast('Conta não encontrada. Crie uma conta 🙂'); setAuthMode('signup'); return; }
+      }catch(e){ console.warn(e); toast('Erro ao entrar. Tente de novo.'); return; }
+    } else {
+      // Sem Firebase: só reconhece a conta salva neste aparelho
+      if(S && S.email===email){ go('home'); return; }
+      toast('Login entre aparelhos requer Firebase configurado.'); return;
     }
-  }catch(e){
-    console.error(e);
-    const map={'auth/email-already-in-use':'Este e-mail já possui conta. Toque em Entrar.','auth/invalid-email':'Digite um e-mail válido.','auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/user-not-found':'Conta não encontrada.','auth/wrong-password':'E-mail ou senha incorretos.'};
-    toast(map[e.code]||'Não foi possível autenticar.');
-    if(statusEl)statusEl.textContent='🔴 Falha na autenticação';
+  } else {
+    // CADASTRO
+    const name=document.getElementById('in-name').value.trim()||'Aluno(a)';
+    S=newUser(name,email); S.pass=pass; save(); startOnboarding();
   }
 }
-/* Une o progresso salvo na nuvem (Firestore, por UID) com o estado local (nova melhoria) */
-async function mergeCloudState(user,isNew){
-  if(!FB.ready||!user)return;
-  try{
-    const ref=FB.doc(FB.db,'users',user.uid);
-    const snap=await FB.getDoc(ref);
-    if(snap.exists()&&!isNew){
-      const cloud=snap.data();
-      S=Object.assign(newUser(cloud.name||'Aluno(a)',cloud.email||user.email),cloud,{authUid:user.uid});
-    }else{
-      if(!S)S=newUser(user.email,user.email);
-      S.authUid=user.uid;
-    }
-  }catch(e){console.warn('mergeCloudState falhou',e);}
-}
+// mantém compatibilidade se algo antigo chamar doRegister
+function doRegister(){submitAuth();}
 let onbStep=0;
 const ONB=[{q:"Quanto tempo você tem por dia?",o:["5 min (Casual)","10 min (Sério)","15 min (Insano)"],v:[10,20,30]},
  {q:"Qual módulo mais te assusta?",o:["Investimentos 📈","Tributário 🧾","Sucessório ⚖️","Nenhum 🚀"]},
@@ -881,40 +1132,54 @@ function confirmAvatar(){
   if(avatarTmp===-1&&customTmp){S.custom=customTmp;S.avatar=null;}
   else{S.avatar=avatarTmp;S.custom=null;}
   save();if(avatarFromOnb)go('home');else{toast('🐶 Avatar atualizado!');go('profile');}}
+/* ===== RECORTE / ZOOM DA FOTO ===== */
+let cropState={img:null,zoom:1,minZoom:1,ox:0,oy:0,drag:false,lx:0,ly:0};
+const CROP_SIZE=280;
 function uploadAvatar(ev){const file=ev.target.files[0];if(!file)return;
-  if(file.size>8*1024*1024){toast('Escolha uma imagem de até 8 MB.');return;}
   const reader=new FileReader();
-  reader.onload=function(e){
-    photoRaw=e.target.result;
-    document.getElementById('photo-zoom').value=1;
-    document.getElementById('photo-x').value=0;
-    document.getElementById('photo-y').value=0;
-    const img=document.getElementById('photo-preview');
-    img.onload=()=>{updatePhotoPreview();};
-    img.src=photoRaw;
-    showScreen('photo');document.getElementById('nav').style.display='none';
-  };reader.readAsDataURL(file);}
-/* Editor de foto: zoom e posição (nova melhoria) */
-let photoRaw=null;
-function updatePhotoPreview(){
-  const z=document.getElementById('photo-zoom').value,x=document.getElementById('photo-x').value,y=document.getElementById('photo-y').value;
-  const img=document.getElementById('photo-preview');
-  img.style.transform=`translate(-50%,-50%) translate(${x}px,${y}px) scale(${z})`;
+  reader.onload=function(e){const img=new Image();
+    img.onload=function(){openCrop(img);};img.src=e.target.result;};
+  reader.readAsDataURL(file);}
+function openCrop(img){
+  // zoom mínimo = preencher o quadrado (cobrir)
+  const base=CROP_SIZE/Math.min(img.width,img.height);
+  cropState={img,base,zoom:1,minZoom:1,ox:0,oy:0,drag:false,lx:0,ly:0};
+  document.getElementById('crop-zoom').value=1;
+  showScreen('crop');document.getElementById('nav').style.display='none';
+  drawCrop();bindCrop();}
+function drawCrop(){
+  const cv=document.getElementById('crop-canvas');const ctx=cv.getContext('2d');
+  const s=cropState;const scale=s.base*s.zoom;const iw=s.img.width*scale,ih=s.img.height*scale;
+  // limita o arraste p/ não sair do quadro
+  const maxX=Math.max(0,(iw-CROP_SIZE)/2),maxY=Math.max(0,(ih-CROP_SIZE)/2);
+  s.ox=Math.max(-maxX,Math.min(maxX,s.ox));s.oy=Math.max(-maxY,Math.min(maxY,s.oy));
+  ctx.clearRect(0,0,CROP_SIZE,CROP_SIZE);
+  ctx.drawImage(s.img,(CROP_SIZE-iw)/2+s.ox,(CROP_SIZE-ih)/2+s.oy,iw,ih);}
+let cropBound=false;
+function bindCrop(){
+  if(cropBound)return;cropBound=true;
+  const cv=document.getElementById('crop-canvas');
+  const start=(x,y)=>{cropState.drag=true;cropState.lx=x;cropState.ly=y;};
+  const move=(x,y)=>{if(!cropState.drag)return;cropState.ox+=(x-cropState.lx);cropState.oy+=(y-cropState.ly);cropState.lx=x;cropState.ly=y;drawCrop();};
+  const end=()=>{cropState.drag=false;};
+  cv.addEventListener('mousedown',e=>start(e.clientX,e.clientY));
+  window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup',end);
+  cv.addEventListener('touchstart',e=>{const t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
+  cv.addEventListener('touchmove',e=>{const t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchend',end);
+  document.getElementById('crop-zoom').addEventListener('input',e=>{cropState.zoom=parseFloat(e.target.value);drawCrop();});
 }
-function usePhoto(){
-  const img=document.getElementById('photo-preview'),cv=document.createElement('canvas');
-  cv.width=cv.height=300;
-  const ctx=cv.getContext('2d'),z=+document.getElementById('photo-zoom').value,
-    px=+document.getElementById('photo-x').value,py=+document.getElementById('photo-y').value,
-    s=Math.max(300/img.naturalWidth,300/img.naturalHeight)*z,
-    w=img.naturalWidth*s,h=img.naturalHeight*s;
-  ctx.drawImage(img,(300-w)/2+px*(300/220),(300-h)/2+py*(300/220),w,h);
-  customTmp=cv.toDataURL('image/jpeg',0.85);avatarTmp=-1;
+function applyCrop(){
+  // exporta o círculo/quadrado central em 240px
+  const out=document.createElement('canvas');out.width=240;out.height=240;
+  const octx=out.getContext('2d');const s=cropState;const scale=s.base*s.zoom;
+  const iw=s.img.width*scale,ih=s.img.height*scale;const k=240/CROP_SIZE;
+  octx.drawImage(s.img,((CROP_SIZE-iw)/2+s.ox)*k,((CROP_SIZE-ih)/2+s.oy)*k,iw*k,ih*k);
+  customTmp=out.toDataURL('image/jpeg',0.8);avatarTmp=-1;
   const saved=S.custom;S.custom=customTmp;openAvatarPicker(avatarFromOnb);S.custom=saved;
-  avatarTmp=-1;const g=document.getElementById('avatar-grid');const first=g.querySelector('img');if(first)first.classList.add('sel');
-  toast('📷 Foto ajustada! Toque em Confirmar');
-  sound('correct');
-}
+  avatarTmp=-1;const first=document.getElementById('avatar-grid').querySelector('img');if(first)first.classList.add('sel');
+  toast('✂️ Foto ajustada! Toque em Confirmar');}
 
 /* TEMPO */
 function renderTime(){const b=document.getElementById('time-opts');b.innerHTML='';
@@ -973,8 +1238,8 @@ function checkAnswer(){const q=cur.mod.questions[cur.qi];cur.answered=true;
   document.getElementById('steps-btn').style.display=q.steps?'block':'none';
   const foot=document.getElementById('foot');foot.style.display='block';const fb=document.getElementById('fb');
   if(ok){cur.correct++;S.diamonds=(S.diamonds||0)+2;save();foot.className='foot ok';fb.className='fb ok';
-    fb.querySelector('.ic').textContent='✓';fb.querySelector('.txt').innerHTML='<b>Mandou bem! +2💎</b><small>'+q.why+'</small>';sound('correct');}
-  else{foot.className='foot bad';fb.className='fb bad';fb.querySelector('.ic').textContent='✕';sound('wrong');
+    fb.querySelector('.ic').textContent='✓';fb.querySelector('.txt').innerHTML='<b>Mandou bem! +2💎</b><small>'+q.why+'</small>';}
+  else{foot.className='foot bad';fb.className='fb bad';fb.querySelector('.ic').textContent='✕';
     fb.querySelector('.txt').innerHTML='<b>Incorreta</b><small>Perdeu ❤️ — vamos revisar</small>';
     S.hearts=Math.max(0,S.hearts-1);document.getElementById('l-hearts').textContent=Math.round(S.hearts);
     const eq={tag:q.tag,q:q.q,opts:q.opts,a:q.a,why:q.why,mod:cur.mod.id};
@@ -1001,7 +1266,7 @@ function finishLesson(){const total=cur.mod.questions.length,gained=cur.correct*
   S.progress[cur.mod.id]=(S.progress[cur.mod.id]||0)+2;save();
   document.getElementById('d-diam').textContent=gained;
   document.getElementById('d-acc').textContent=Math.round(cur.correct/total*100);
-  document.getElementById('d-streak').textContent=S.streak;showScreen('done');checkBadges();sound('win');confetti();}
+  document.getElementById('d-streak').textContent=S.streak;showScreen('done');checkBadges();}
 function quitLesson(){if(confirm('Sair da lição?'))go('home');}
 
 /* SEM VIDAS / REVISÃO DE ERROS */
@@ -1109,7 +1374,9 @@ function sendMsg(){const inp=document.getElementById('chat-in');const tx=inp.val
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* DUELO */
-function renderDuelLobby(){document.getElementById('d-wins').textContent=S.duelWins||0;
+/* ===== DUELO: usa TEMPO REAL (Firebase) quando online; robô como reserva ===== */
+function renderDuelLobby(){ if(FB.ready){ rtLobby(); } else { robotLobby(); } }
+function robotLobby(){document.getElementById('d-wins').textContent=S.duelWins||0;
   document.getElementById('d-losses').textContent=S.duelLosses||0;
   const box=document.getElementById('opp-list');box.innerHTML='';
   const rivals=getUsers().filter(u=>u.email!==S.email).sort((a,b)=>(b.xp||0)-(a.xp||0));
@@ -1144,15 +1411,102 @@ function lockDuel(sel){clearInterval(duel.timer);duel.answered=true;duel.sel=sel
   if(myOk){foot.className='foot ok';fb.className='fb ok';fb.querySelector('.ic').textContent='✓';fb.querySelector('.txt').innerHTML=`<b>Acertou! +1</b><small>${duel.opp.n} ${opTxt}</small>`;}
   else{foot.className='foot bad';fb.className='fb bad';fb.querySelector('.ic').textContent='✕';fb.querySelector('.txt').innerHTML=`<b>${sel<0?'Tempo!':'Errou'}</b><small>${duel.opp.n} ${opTxt}</small>`;}
   document.getElementById('m-next').textContent=(duel.qi>=duel.qs.length-1)?'Ver resultado':'Continuar';}
-function nextDuelQuestion(){duel.qi++;if(duel.qi>=duel.qs.length){finishDuel();return;}renderDuelQuestion();}
+function nextDuelQuestion(){ if(RT&&RT.duelId){ rtNext(); return; } duel.qi++;if(duel.qi>=duel.qs.length){finishDuel();return;}renderDuelQuestion();}
 function finishDuel(){const win=duel.myScore>duel.opScore,tie=duel.myScore===duel.opScore;
   document.getElementById('r-my').textContent=duel.myScore;document.getElementById('r-op').textContent=duel.opScore;document.getElementById('r-op-name').textContent=duel.opp.n;
   const e=document.getElementById('r-emoji'),t=document.getElementById('r-title'),rw=document.getElementById('r-reward');
   if(win){e.textContent='🏆';t.textContent='Você venceu!';t.style.color='var(--verde-esc)';S.duelWins=(S.duelWins||0)+1;S.diamonds=(S.diamonds||0)+15;rw.innerHTML='<span class="reward-pill">💎 +15</span><span class="reward-pill">🏆 +1</span>';setTimeout(()=>toast('🏆 Vitória! +15💎'),400);}
   else if(tie){e.textContent='🤝';t.textContent='Empate!';t.style.color='var(--azul)';S.diamonds=(S.diamonds||0)+8;rw.innerHTML='<span class="reward-pill">💎 +8</span>';setTimeout(()=>toast('🤝 Empate! +8💎'),400);}
   else{e.textContent='💀';t.textContent='Você perdeu...';t.style.color='var(--vermelho)';S.duelLosses=(S.duelLosses||0)+1;S.diamonds=(S.diamonds||0)+3;rw.innerHTML='<span class="reward-pill">💎 +3</span>';setTimeout(()=>toast('💀 +3💎 de consolo'),400);}
-  save();showScreen('result');checkBadges();if(win){sound('win');confetti();}else if(!tie){sound('wrong');}}
-function rematch(){toast('🔄 Revanche!');startDuel({name:duel.opp.n,email:duel.opp.email,xp:(duel.opp.skill-0.40)*1000,avatar:duel.opp.avatar});}
+  save();showScreen('result');checkBadges();}
+function rematch(){ if(FB.ready){toast('Envie um novo convite pela lista 😉');go('duel');return;} toast('🔄 Revanche!');startDuel({name:duel.opp.n,email:duel.opp.email,xp:(duel.opp.skill-0.40)*1000,avatar:duel.opp.avatar});}
+
+/* ================= DUELO EM TEMPO REAL (Firebase) ================= */
+const DL=['a','b','c','d','e'];
+let RT=null, unsubDuel=null, unsubInv=null, invitesOn=false;
+function idOf(e){return (e||'').toLowerCase().replace(/[^a-z0-9]/gi,'_');}
+function q5(){return pickDuelQuestions().map(x=>({q:x.q,opts:x.opts,a:x.a,tag:x.tag}));}
+async function rtLobby(){
+  document.getElementById('d-wins').textContent=S.duelWins||0;
+  document.getElementById('d-losses').textContent=S.duelLosses||0;
+  const box=document.getElementById('opp-list');box.innerHTML='<div class="empty-note">Carregando amigos…</div>';
+  let users=[];try{const snap=await FB.getDocs(FB.collection(FB.db,'users'));snap.forEach(d=>users.push(d.data()));}catch(e){}
+  users=users.filter(u=>u.email&&u.email!==S.email).sort((a,b)=>(b.xp||0)-(a.xp||0));
+  box.innerHTML='';
+  if(users.length===0){box.innerHTML='<div class="empty-note"><div class="big">👥</div>Nenhum amigo inscrito ainda.<br>Compartilhe o app para desafiá-los!</div>';}
+  users.forEach(u=>{const row=document.createElement('div');row.className='opp-row';
+    row.innerHTML=`<div class="av">${avInner(u)}</div><div class="meta"><b>${u.name}</b><small>💎 ${u.xp||0} XP · 🏆 ${u.duelWins||0}</small></div><button class="challenge">Desafiar</button>`;
+    row.querySelector('.challenge').onclick=()=>sendInvite(u);box.appendChild(row);});
+  const rb=document.getElementById('duel-rank');rb.innerHTML='';
+  const w=users.concat([{name:S.name,email:S.email,duelWins:S.duelWins||0,avatar:S.avatar,custom:S.custom}]).filter(u=>(u.duelWins||0)>0).sort((a,b)=>(b.duelWins||0)-(a.duelWins||0));
+  if(w.length===0){rb.innerHTML='<div class="empty-note"><div class="big">⚔️</div>Ainda ninguém venceu um duelo.</div>';return;}
+  w.forEach((r,i)=>{const row=document.createElement('div');row.className='rank-row'+(r.email===S.email?' me':'');
+    row.innerHTML=`<div class="pos ${i<3?'top':''}">${i+1}</div><div class="av">${avInner(r)}</div><div class="nm">${r.name}${r.email===S.email?' (você)':''}</div><div class="xp" style="color:var(--roxo)">🏆 ${r.duelWins||0}</div>`;rb.appendChild(row);});
+}
+async function sendInvite(u){
+  const duelId=idOf(S.email)+'_'+idOf(u.email)+'_'+Date.now();const questions=q5();
+  try{
+    await FB.setDoc(FB.doc(FB.db,'invites',idOf(u.email)),{from:S.email,fromName:S.name,to:u.email,status:'pending',duelId,ts:Date.now()});
+    await FB.setDoc(FB.doc(FB.db,'duels',duelId),{status:'waiting',questions,
+      p1:{email:S.email,name:S.name,avatar:S.avatar??null,custom:S.custom||null,score:0,done:0},
+      p2:{email:u.email,name:u.name,avatar:u.avatar??null,custom:u.custom||null,score:0,done:0}});
+    toast('📨 Convite enviado para '+u.name+'!');joinDuel(duelId,'p1');
+  }catch(e){toast('Falha ao enviar convite');console.warn(e);}
+}
+function listenInvites(){
+  if(!FB.ready||!S||!S.email||invitesOn)return;invitesOn=true;
+  if(unsubInv)unsubInv();
+  unsubInv=FB.onSnapshot(FB.doc(FB.db,'invites',idOf(S.email)),snap=>{
+    const inv=snap.data();if(!inv||inv.status!=='pending')return;
+    if(confirm('⚔️ '+inv.fromName+' te desafiou para um duelo!\n\nAceitar agora?')){
+      FB.setDoc(FB.doc(FB.db,'invites',idOf(S.email)),{status:'accepted'},{merge:true});
+      FB.setDoc(FB.doc(FB.db,'duels',inv.duelId),{status:'playing'},{merge:true});
+      joinDuel(inv.duelId,'p2');
+    } else { FB.setDoc(FB.doc(FB.db,'invites',idOf(S.email)),{status:'declined'},{merge:true}); }
+  });
+}
+function joinDuel(duelId,side){
+  RT={duelId,side,qi:0,answered:false,myScore:0,started:false,timer:null};
+  showScreen('match');document.getElementById('nav').style.display='none';
+  document.getElementById('m-my-score').textContent='0';document.getElementById('m-op-score').textContent='0';
+  document.getElementById('m-text').textContent='Aguardando o oponente…';document.getElementById('m-opts').innerHTML='';document.getElementById('m-foot').style.display='none';
+  if(unsubDuel)unsubDuel();
+  unsubDuel=FB.onSnapshot(FB.doc(FB.db,'duels',duelId),snap=>{const d=snap.data();if(!d)return;RT.data=d;
+    const me=(side==='p1')?d.p1:d.p2,op=(side==='p1')?d.p2:d.p1;
+    document.getElementById('m-my-init').innerHTML=avInner(me);document.getElementById('m-op-init').innerHTML=avInner(op);
+    document.getElementById('m-op-name').textContent=op.name;
+    document.getElementById('m-my-score').textContent=me.score;document.getElementById('m-op-score').textContent=op.score;
+    if(d.status==='waiting'){document.getElementById('m-text').textContent='Aguardando '+op.name+' aceitar…';return;}
+    if(d.status==='playing'&&!RT.started){RT.started=true;RT.questions=d.questions;rtRender();}
+    if(d.status==='finished'){if(unsubDuel)unsubDuel();rtFinish(op);}
+  });
+}
+function rtRender(){const q=RT.questions[RT.qi];RT.answered=false;
+  document.getElementById('m-round').textContent=RT.qi+1;document.getElementById('m-tag').textContent=q.tag||'';document.getElementById('m-text').textContent=q.q;
+  const b=document.getElementById('m-opts');b.innerHTML='';
+  q.opts.forEach((op,i)=>{const el=document.createElement('div');el.className='opt';
+    el.innerHTML=`<span class="k">${DL[i]}</span><span>${op}</span>`;el.onclick=()=>{if(RT.answered)return;rtAnswer(i);};b.appendChild(el);});
+  document.getElementById('m-foot').style.display='none';let t=100;const bar=document.getElementById('m-timer');bar.style.width='100%';clearInterval(RT.timer);
+  RT.timer=setInterval(()=>{t-=100/150;bar.style.width=Math.max(0,t)+'%';if(t<=0){clearInterval(RT.timer);if(!RT.answered)rtAnswer(-1);}},100);}
+async function rtAnswer(sel){clearInterval(RT.timer);RT.answered=true;const q=RT.questions[RT.qi];
+  const opts=document.querySelectorAll('#m-opts .opt');opts.forEach(o=>o.classList.add('disabled'));opts[q.a].classList.add('ok');
+  const ok=sel===q.a;if(sel>=0&&!ok)opts[sel].classList.add('bad');if(ok)RT.myScore++;
+  const patch={};patch[RT.side]={...(RT.data[RT.side]||{}),score:RT.myScore,done:RT.qi+1};
+  try{await FB.setDoc(FB.doc(FB.db,'duels',RT.duelId),patch,{merge:true});}catch(e){}
+  const foot=document.getElementById('m-foot');foot.style.display='block';const fb=document.getElementById('m-fb');
+  foot.className='foot '+(ok?'ok':'bad');fb.className='fb '+(ok?'ok':'bad');fb.querySelector('.ic').textContent=ok?'✓':'✕';
+  fb.querySelector('.txt').innerHTML=ok?'<b>Acertou! +1</b>':('<b>'+(sel<0?'Tempo!':'Errou')+'</b>');
+  document.getElementById('m-next').textContent=(RT.qi>=RT.questions.length-1)?'Ver resultado':'Continuar';}
+async function rtNext(){RT.qi++;if(RT.qi>=RT.questions.length){try{await FB.setDoc(FB.doc(FB.db,'duels',RT.duelId),{status:'finished'},{merge:true});}catch(e){}return;}rtRender();}
+function rtFinish(op){const win=RT.myScore>op.score,tie=RT.myScore===op.score;
+  document.getElementById('r-my').textContent=RT.myScore;document.getElementById('r-op').textContent=op.score;document.getElementById('r-op-name').textContent=op.name;
+  const e=document.getElementById('r-emoji'),t=document.getElementById('r-title'),rw=document.getElementById('r-reward');
+  if(win){e.textContent='🏆';t.textContent='Você venceu!';t.style.color='var(--verde-esc)';S.duelWins=(S.duelWins||0)+1;S.diamonds=(S.diamonds||0)+15;rw.innerHTML='<span class="reward-pill">🏆 +1</span><span class="reward-pill">💎 +15</span>';}
+  else if(tie){e.textContent='🤝';t.textContent='Empate!';t.style.color='var(--azul)';S.diamonds=(S.diamonds||0)+8;rw.innerHTML='<span class="reward-pill">💎 +8</span>';}
+  else{e.textContent='💀';t.textContent='Você perdeu...';t.style.color='var(--vermelho)';S.duelLosses=(S.duelLosses||0)+1;S.diamonds=(S.diamonds||0)+3;rw.innerHTML='<span class="reward-pill">💎 +3</span>';}
+  save();showScreen('result');checkBadges();
+  try{FB.deleteDoc(FB.doc(FB.db,'invites',idOf(S.email)));}catch(_){}
+  RT=null;}
 
 /* RANKING */
 function renderRank(){const users=getUsers().slice().sort((a,b)=>(b.xp||0)-(a.xp||0));const box=document.getElementById('rank-list');box.innerHTML='';
@@ -1172,35 +1526,19 @@ function renderProfile(){const pin=document.getElementById('p-init');
   document.getElementById('p-goal').textContent=S.goal;
   document.getElementById('premium-cta').style.display=isPaid()?'block':'none';
   const b=document.getElementById('badges');b.innerHTML='';
-  BADGES.forEach(bd=>{const on=bd.chk(S);const d=document.createElement('div');d.className='badge '+(on?'on':'off');d.innerHTML=`<span class="e">${bd.e}</span>${bd.t}`;b.appendChild(d);});
-  const ss=document.getElementById('set-sound'),sv=document.getElementById('set-volume'),svb=document.getElementById('set-vib');
-  if(ss)ss.checked=S.sound!==false;if(sv)sv.value=(S.volume!=null?S.volume:0.65);if(svb)svb.checked=S.vibration!==false;}
-/* EXPORTAR DADOS (nova melhoria: backup completo do usuário) */
-function exportAllData(){
-  const data={state:S,extraQuestions:getExtraQuestions(),exportedAt:new Date().toISOString()};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='cfpquest-backup-'+(S.name||'usuario').replace(/[^a-z0-9]/gi,'_')+'.json';
-  document.body.appendChild(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast('💾 Backup exportado!');
-}
+  BADGES.forEach(bd=>{const on=bd.chk(S);const d=document.createElement('div');d.className='badge '+(on?'on':'off');d.innerHTML=`<span class="e">${bd.e}</span>${bd.t}`;b.appendChild(d);});}
 function checkBadges(){BADGES.forEach(b=>{if(b.chk(S)&&!S['badge_'+b.id]){S['badge_'+b.id]=1;save();setTimeout(()=>toast('🏅 Conquista: '+b.t+'!'),600);}});}
 
 /* XP: espelha diamantes p/ ranking (XP acumulado nunca cai) */
 const _origSave=save;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
-function logout(){if(confirm('Sair e apagar seu progresso local?')){
-  if(FB.authReady&&FB.auth&&FB.auth.currentUser){try{FB.signOut(FB.auth);}catch(e){}}
-  localStorage.removeItem('cfpquest');S=null;location.reload();}}
+function logout(){if(confirm('Sair e apagar seu progresso local?')){localStorage.removeItem('cfpquest');S=null;location.reload();}}
 function deleteAccount(){
   if(!confirm('⚠️ Tem certeza que deseja EXCLUIR sua conta? Todo o seu progresso será apagado permanentemente.'))return;
   if(!confirm('Esta ação é IRREVERSÍVEL. Confirmar exclusão da conta?'))return;
   // remove do ranking online (Firebase) se disponível
   if(FB.ready&&S){try{const id=S.email.replace(/[^a-z0-9]/gi,'_');
-    if(FB.deleteDoc&&FB.doc)FB.deleteDoc(FB.doc(FB.db,'users',id)).catch(()=>{});
-    if(S.authUid)FB.deleteDoc(FB.doc(FB.db,'users',S.authUid)).catch(()=>{});}catch(e){}}
-  if(FB.authReady&&FB.auth&&FB.auth.currentUser){try{FB.deleteUser(FB.auth.currentUser).catch(()=>{});}catch(e){}}
+    if(FB.deleteDoc&&FB.doc)FB.deleteDoc(FB.doc(FB.db,'users',id)).catch(()=>{});}catch(e){}}
   // remove da lista local
   try{let us=getUsersLocal().filter(u=>u.email!==(S&&S.email));setUsersLocal(us);}catch(e){}
   localStorage.removeItem('cfpquest');S=null;
@@ -1303,22 +1641,11 @@ function adminSaveBilling(){
 
 /* INIT */
 applyExtraQuestions(); // carrega perguntas adicionadas pelo admin
-function onFB(){ if(FB.ready){ subscribeRank(); if(S)syncUser(); const act=document.querySelector('.screen.active'); if(act&&act.id==='chat')renderChat();
-    const statusEl=document.getElementById('cloud-status');
-    if(FB.authReady){
-      if(statusEl)statusEl.textContent='🟢 Online';
-      FB.onAuthStateChanged(FB.auth,async user=>{
-        if(user&&!S){ await mergeCloudState(user,false); save(); go('home'); }
-      });
-    }
-  } else {
-    const statusEl=document.getElementById('cloud-status');
-    if(statusEl)statusEl.textContent='🔴 Firebase indisponível (modo local)';
-  }
-}
+function onFB(){ if(FB.ready){ subscribeRank(); if(S)syncUser(); listenInvites(); updateConnStatus(); const act=document.querySelector('.screen.active'); if(act&&act.id==='chat')renderChat(); } }
 document.addEventListener('fb-ready',onFB);
 if(S){if(S.diamonds==null)S.diamonds=0;if(!S.progress)S.progress={};if(S.hearts==null)S.hearts=MAX_HEARTS;syncUser();go('home');}else{showScreen('login');}
-setTimeout(onFB,800); // caso o Firebase já esteja pronto
+updateConnStatus();
+setTimeout(function(){onFB();updateConnStatus();},800); // caso o Firebase já esteja pronto
 </script>
 <script>/* liga renderTime ao abrir a tela */
 (function(){const _go=go;window.go=function(id){_go(id);if(id==='timepicker')renderTime();};})();</script>
