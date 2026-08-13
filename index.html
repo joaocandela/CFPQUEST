@@ -198,11 +198,12 @@
     <h1>CFP Quest</h1>
     <div class="tag">Sua aprovação no CFP®, no seu ritmo. Você escolhe quantos minutos estuda por dia.</div>
     <div class="card">
-      <div class="field"><label>Seu nome</label><input id="in-name" placeholder="Ex.: João Paulo" value=""></div>
+      <div class="field" id="login-name-field"><label>Seu nome</label><input id="in-name" placeholder="Ex.: João Paulo" value=""></div>
       <div class="field"><label>E-mail</label><input id="in-email" type="email" placeholder="voce@email.com" value=""></div>
       <div class="field"><label>Senha</label><input id="in-pass" type="password" placeholder="••••••••" value=""></div>
-      <button class="btn green" onclick="doRegister()">Criar conta grátis</button>
-      <div class="muted">Já tem conta? <span class="switch" onclick="doRegister()">Entrar</span></div>
+      <button class="btn green" id="login-main-btn" onclick="submitAuth()">Criar conta grátis</button>
+      <div class="muted"><span id="login-switch-text">Já tem conta?</span> <span class="switch" id="login-switch-link" onclick="toggleAuthMode()">Entrar</span></div>
+      <div class="muted" id="forgot-pass-wrap" style="display:none;"><span class="switch" onclick="doForgotPassword()">Esqueci minha senha</span></div>
     </div>
     <div class="credit">created by Joao Candela</div>
   </section>
@@ -521,8 +522,10 @@
 <!-- ===== FIREBASE (ranking em tempo real, compartilhado entre todos) ===== -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, deleteDoc, getDocs, serverTimestamp }
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, getDocs, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile, deleteUser }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBI5diMEfNxKr1yN6lJ8GB1KC6IBkgpKIk",
@@ -539,7 +542,9 @@
     if(!String(firebaseConfig.projectId).startsWith("COLE")){
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
-      window.FB = { ready:true, db, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, deleteDoc, getDocs, serverTimestamp };
+      const auth = getAuth(app);
+      window.FB = { ready:true, db, auth, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, deleteDoc, getDocs, serverTimestamp,
+        createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile, deleteUser };
       document.dispatchEvent(new Event('fb-ready'));
     }
   } catch(e){ console.warn('Firebase off:', e); }
@@ -1037,7 +1042,8 @@ const BADGES=[
 
 let S=load()||null, cur={}, duel=null, flash={}, mem={}, er={};
 function load(){try{return JSON.parse(localStorage.getItem('cfpquest'))}catch(e){return null}}
-function save(){localStorage.setItem('cfpquest',JSON.stringify(S));syncUser();}
+function save(){localStorage.setItem('cfpquest',JSON.stringify(S));syncUser();
+  if(FB.ready&&S&&S.uid){FB.setDoc(FB.doc(FB.db,'progress',S.uid),S).catch(()=>{});}}
 function newUser(name,email){return {name,email,xp:0,diamonds:0,streak:1,hearts:MAX_HEARTS,completed:[],lessons:0,errors:[],goal:10,duelWins:0,duelLosses:0,studied:0,avatar:Math.floor(Math.random()*AVATARS.length),progress:{}};}
 let RANKUSERS=[]; // preenchido pelo Firebase quando online
 function getUsersLocal(){try{return JSON.parse(localStorage.getItem('cfpquest_users'))||[]}catch(e){return[]}}
@@ -1073,10 +1079,82 @@ function go(id){showScreen(id);document.getElementById('nav').style.display='fle
   if(id==='profile'){document.getElementById('nav-prof').classList.add('active');renderProfile();}
   if(id==='plans'){renderPlans();}}
 
-/* LOGIN / ONBOARDING */
-function doRegister(){const name=document.getElementById('in-name').value.trim()||'Aluno(a)';
-  const email=(document.getElementById('in-email').value.trim()||'aluno@email.com').toLowerCase();
-  if(!S){S=newUser(name,email);save();startOnboarding();}else go('home');}
+/* LOGIN / CADASTRO (Firebase Authentication) */
+let authMode='register';
+function toggleAuthMode(){
+  authMode = authMode==='register' ? 'login' : 'register';
+  const nameField=document.getElementById('login-name-field');
+  const btn=document.getElementById('login-main-btn');
+  const switchText=document.getElementById('login-switch-text');
+  const switchLink=document.getElementById('login-switch-link');
+  const forgot=document.getElementById('forgot-pass-wrap');
+  if(authMode==='login'){
+    nameField.style.display='none';btn.textContent='Entrar';
+    switchText.textContent='Não tem conta?';switchLink.textContent='Criar conta';
+    forgot.style.display='block';
+  }else{
+    nameField.style.display='block';btn.textContent='Criar conta grátis';
+    switchText.textContent='Já tem conta?';switchLink.textContent='Entrar';
+    forgot.style.display='none';
+  }
+}
+function authErrorMsg(e){
+  const map={
+    'auth/email-already-in-use':'Este e-mail já está cadastrado. Toque em "Entrar".',
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
+    'auth/user-not-found':'Conta não encontrada. Verifique o e-mail ou crie uma conta.',
+    'auth/wrong-password':'Senha incorreta.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.',
+    'auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.',
+    'auth/network-request-failed':'Falha de conexão. Verifique sua internet.',
+  };
+  return (e&&map[e.code]) || 'Não foi possível autenticar. Tente novamente.';
+}
+async function submitAuth(){
+  if(!FB.ready){toast('⚠️ Conectando ao servidor... tente novamente em instantes.');return;}
+  const email=(document.getElementById('in-email').value.trim()||'').toLowerCase();
+  const pass=document.getElementById('in-pass').value;
+  if(!email||!pass){toast('Preencha e-mail e senha');return;}
+  const btn=document.getElementById('login-main-btn');btn.disabled=true;
+  try{
+    if(authMode==='register'){
+      const name=document.getElementById('in-name').value.trim()||'Aluno(a)';
+      const cred=await FB.createUserWithEmailAndPassword(FB.auth,email,pass);
+      if(FB.updateProfile)await FB.updateProfile(cred.user,{displayName:name}).catch(()=>{});
+      await initNewCloudUser(cred.user.uid,name,email);
+    }else{
+      const cred=await FB.signInWithEmailAndPassword(FB.auth,email,pass);
+      await loadCloudUser(cred.user.uid,cred.user.email);
+    }
+  }catch(e){toast('⚠️ '+authErrorMsg(e));}
+  finally{btn.disabled=false;}
+}
+function doForgotPassword(){
+  if(!FB.ready){toast('⚠️ Conecte-se à internet para redefinir a senha.');return;}
+  const email=(document.getElementById('in-email').value.trim()||'').toLowerCase();
+  if(!email){toast('Digite seu e-mail no campo acima primeiro');return;}
+  FB.sendPasswordResetEmail(FB.auth,email).then(()=>toast('📧 E-mail de redefinição enviado!')).catch(e=>toast('⚠️ '+authErrorMsg(e)));
+}
+async function initNewCloudUser(uid,name,email){
+  S=newUser(name,email);S.uid=uid;
+  localStorage.setItem('cfpquest',JSON.stringify(S));
+  if(FB.ready){try{await FB.setDoc(FB.doc(FB.db,'progress',uid),S);}catch(e){}}
+  syncUser();startOnboarding();
+}
+async function loadCloudUser(uid,email){
+  try{
+    const snap=await FB.getDoc(FB.doc(FB.db,'progress',uid));
+    if(snap.exists()){
+      S=snap.data();S.uid=uid;
+      if(S.diamonds==null)S.diamonds=0;if(!S.progress)S.progress={};if(S.hearts==null)S.hearts=MAX_HEARTS;
+      localStorage.setItem('cfpquest',JSON.stringify(S));
+      syncUser();go('home');
+    }else{
+      await initNewCloudUser(uid,(email||'').split('@')[0]||'Aluno(a)',email||'');
+    }
+  }catch(e){toast('⚠️ Não foi possível carregar seus dados. Tente novamente.');}
+}
 let onbStep=0;
 const ONB=[{q:"Quanto tempo você tem por dia?",o:["5 min (Casual)","10 min (Sério)","15 min (Insano)"],v:[10,20,30]},
  {q:"Qual módulo mais te assusta?",o:["Investimentos 📈","Tributário 🧾","Sucessório ⚖️","Nenhum 🚀"]},
@@ -1477,13 +1555,22 @@ function checkBadges(){BADGES.forEach(b=>{if(b.chk(S)&&!S['badge_'+b.id]){S['bad
 /* XP: espelha diamantes p/ ranking (XP acumulado nunca cai) */
 const _origSave=save;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
-function logout(){if(confirm('Sair e apagar seu progresso local?')){localStorage.removeItem('cfpquest');S=null;location.reload();}}
+function logout(){
+  if(confirm('Sair da sua conta?')){
+    if(FB.ready&&FB.auth)FB.signOut(FB.auth).catch(()=>{});
+    localStorage.removeItem('cfpquest');S=null;location.reload();
+  }
+}
 function deleteAccount(){
   if(!confirm('⚠️ Tem certeza que deseja EXCLUIR sua conta? Todo o seu progresso será apagado permanentemente.'))return;
   if(!confirm('Esta ação é IRREVERSÍVEL. Confirmar exclusão da conta?'))return;
-  // remove do ranking online (Firebase) se disponível
-  if(FB.ready&&S){try{const id=S.email.replace(/[^a-z0-9]/gi,'_');
-    if(FB.deleteDoc&&FB.doc)FB.deleteDoc(FB.doc(FB.db,'users',id)).catch(()=>{});}catch(e){}}
+  const uid=S&&S.uid;
+  if(FB.ready&&S){
+    try{const id=S.email.replace(/[^a-z0-9]/gi,'_');
+      if(FB.deleteDoc&&FB.doc)FB.deleteDoc(FB.doc(FB.db,'users',id)).catch(()=>{});}catch(e){}
+    if(uid){try{FB.deleteDoc(FB.doc(FB.db,'progress',uid)).catch(()=>{});}catch(e){}}
+    if(FB.auth&&FB.auth.currentUser&&FB.deleteUser){FB.deleteUser(FB.auth.currentUser).catch(()=>{});}
+  }
   // remove da lista local
   try{let us=getUsersLocal().filter(u=>u.email!==(S&&S.email));setUsersLocal(us);}catch(e){}
   localStorage.removeItem('cfpquest');S=null;
@@ -1586,7 +1673,14 @@ function adminSaveBilling(){
 
 /* INIT */
 applyExtraQuestions(); // carrega perguntas adicionadas pelo admin
-function onFB(){ if(FB.ready){ subscribeRank(); if(S)syncUser(); listenInvites(); } }
+function onFB(){ if(FB.ready){ subscribeRank(); if(S)syncUser(); listenInvites();
+  if(FB.auth&&FB.onAuthStateChanged){
+    FB.onAuthStateChanged(FB.auth,user=>{
+      if(user&&(!S||!S.uid)){ loadCloudUser(user.uid,user.email); }
+      else if(!user&&S&&S.uid){ localStorage.removeItem('cfpquest');S=null;showScreen('login'); }
+    });
+  }
+} }
 document.addEventListener('fb-ready',onFB);
 if(S){if(S.diamonds==null)S.diamonds=0;if(!S.progress)S.progress={};if(S.hearts==null)S.hearts=MAX_HEARTS;syncUser();go('home');}else{showScreen('login');}
 setTimeout(onFB,800); // caso o Firebase já esteja pronto
@@ -1594,4 +1688,4 @@ setTimeout(onFB,800); // caso o Firebase já esteja pronto
 <script>/* liga renderTime ao abrir a tela */
 (function(){const _go=go;window.go=function(id){_go(id);if(id==='timepicker')renderTime();};})();</script>
 </body>
-</html>
+</html> 
