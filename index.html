@@ -162,6 +162,35 @@
   #nav{position:absolute;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:2px solid var(--cinza);display:flex;z-index:10;padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:content-box;}
   #nav button{flex:1;background:none;border:none;font-size:21px;cursor:pointer;color:var(--cinza2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
   #nav button small{font-size:9px;font-weight:700;}#nav button.active{color:var(--verde);}
+
+  /* ===== CALCULADORA HP-12C ===== */
+  #calc-fab{position:absolute;right:16px;bottom:calc(82px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;background:linear-gradient(160deg,#2b2b2b,#0c0c0c);color:#ff8a00;font-size:25px;display:none;align-items:center;justify-content:center;border:2px solid #ff8a00;box-shadow:0 6px 16px rgba(0,0,0,.35);cursor:pointer;z-index:15;}
+  #calc-fab:active{transform:scale(.94);}
+  #calc-fab .fabtxt{position:absolute;bottom:-16px;font-size:8px;font-weight:800;color:var(--azul);background:#fff;padding:1px 6px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.15);}
+  .calc-overlay{position:absolute;inset:0;background:#161616;z-index:50;display:none;flex-direction:column;}
+  .calc-overlay.show{display:flex;animation:fade .25s;}
+  .calc-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#000;color:#fff;flex-shrink:0;}
+  .calc-head .xbtn2{font-size:22px;color:#999;cursor:pointer;font-weight:800;}
+  .calc-head b{flex:1;font-size:13px;letter-spacing:.5px;color:#ff8a00;text-transform:uppercase;}
+  .calc-badge{font-size:10px;font-weight:800;background:#ff8a00;color:#1a1200;padding:3px 8px;border-radius:10px;display:none;}
+  .calc-body{flex:1;display:flex;flex-direction:column;padding:14px;overflow-y:auto;}
+  .calc-lcd-wrap{background:linear-gradient(160deg,#1c2b1c,#0d160d);border-radius:12px;padding:12px 14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.5);}
+  .calc-lcd{font-family:'Courier New',monospace;font-size:30px;font-weight:700;color:#c8ffb0;text-align:right;min-height:38px;letter-spacing:1px;text-shadow:0 0 6px rgba(200,255,176,.4);word-break:break-all;}
+  .calc-regs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:#0d160d;border-radius:8px;padding:7px 5px;margin-top:8px;}
+  .calc-regs div{text-align:center;}
+  .calc-regs .rl{font-size:9px;color:#5f8a5f;font-weight:800;}
+  .calc-regs .rv{font-family:'Courier New',monospace;font-size:10.5px;color:#3f5c3f;margin-top:2px;}
+  .calc-regs .rv.known{color:#c8ffb0;}
+  .calc-hint{font-size:10px;color:#777;text-align:center;margin:9px 0 11px;line-height:1.4;}
+  .calc-keys{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
+  .ckey{border:none;border-radius:9px;padding:13px 3px;font-size:13px;font-weight:800;cursor:pointer;background:#2b2b2b;color:#eee;box-shadow:0 3px 0 #050505;}
+  .ckey:active{transform:translateY(2px);box-shadow:0 1px 0 #050505;}
+  .ckey.fin{background:#ff8a00;color:#1a1200;box-shadow:0 3px 0 #a85c00;}
+  .ckey.op{background:#3d4a63;color:#fff;box-shadow:0 3px 0 #232c3d;}
+  .ckey.enter{background:#1cb0f6;color:#00243a;box-shadow:0 3px 0 #1080ad;font-size:11.5px;}
+  .ckey.warn{background:#5a1f1f;color:#ffb3b3;box-shadow:0 3px 0 #300f0f;}
+  .ckey.blue{background:#233a5a;color:#bcd6ff;box-shadow:0 3px 0 #14233a;}
+  .ckey.blue.on{background:#ff8a00;color:#1a1200;box-shadow:0 3px 0 #a85c00;}
   .toast{position:absolute;top:70px;left:50%;transform:translateX(-50%) translateY(-200%);background:var(--azul);color:#fff;padding:12px 20px;border-radius:30px;font-weight:800;font-size:13px;z-index:40;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:transform .4s,opacity .3s;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;}
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible;}
   .center-col{align-items:center;justify-content:center;text-align:center;}
@@ -517,6 +546,68 @@
     <button id="nav-rank" onclick="go('rank')">🏆<small>Ranking</small></button>
     <button id="nav-prof" onclick="go('profile')">👤<small>Perfil</small></button>
   </nav>
+
+  <!-- BOTÃO FLUTUANTE — CALCULADORA HP-12C -->
+  <button id="calc-fab" onclick="openCalc()" title="Calculadora HP-12C">🖩<span class="fabtxt">HP-12C</span></button>
+
+  <!-- CALCULADORA HP-12C -->
+  <div class="calc-overlay" id="calc-overlay">
+    <div class="calc-head">
+      <span class="xbtn2" onclick="closeCalc()">←</span>
+      <b>HP-12C · Financeira</b>
+      <span class="calc-badge" id="hp-beg">BEGIN</span>
+    </div>
+    <div class="calc-body">
+      <div class="calc-lcd-wrap">
+        <div class="calc-lcd" id="hp-lcd">0</div>
+        <div class="calc-regs">
+          <div><div class="rl">n</div><div class="rv" id="hp-reg-n">—</div></div>
+          <div><div class="rl">i%</div><div class="rv" id="hp-reg-i">—</div></div>
+          <div><div class="rl">PV</div><div class="rv" id="hp-reg-pv">—</div></div>
+          <div><div class="rl">PMT</div><div class="rv" id="hp-reg-pmt">—</div></div>
+          <div><div class="rl">FV</div><div class="rv" id="hp-reg-fv">—</div></div>
+        </div>
+      </div>
+      <div class="calc-hint">Digite um valor e toque em <b>n · i · PV · PMT · FV</b> para gravar. Com os outros 4 gravados, toque na tecla que falta (sem digitar) para calcular. STO/RCL guardam números nas memórias 0-9.</div>
+      <div class="calc-keys">
+        <button class="ckey fin" onclick="hpKey('tvm','n')">n</button>
+        <button class="ckey fin" onclick="hpKey('tvm','i')">i</button>
+        <button class="ckey fin" onclick="hpKey('tvm','pv')">PV</button>
+        <button class="ckey fin" onclick="hpKey('tvm','pmt')">PMT</button>
+        <button class="ckey fin" onclick="hpKey('tvm','fv')">FV</button>
+
+        <button class="ckey blue" onclick="hpKey('sto')">STO</button>
+        <button class="ckey" onclick="hpKey('digit','7')">7</button>
+        <button class="ckey" onclick="hpKey('digit','8')">8</button>
+        <button class="ckey" onclick="hpKey('digit','9')">9</button>
+        <button class="ckey op" onclick="hpKey('op','÷')">÷</button>
+
+        <button class="ckey blue" onclick="hpKey('rcl')">RCL</button>
+        <button class="ckey" onclick="hpKey('digit','4')">4</button>
+        <button class="ckey" onclick="hpKey('digit','5')">5</button>
+        <button class="ckey" onclick="hpKey('digit','6')">6</button>
+        <button class="ckey op" onclick="hpKey('op','×')">×</button>
+
+        <button class="ckey blue" onclick="hpKey('chs')">CHS</button>
+        <button class="ckey" onclick="hpKey('digit','1')">1</button>
+        <button class="ckey" onclick="hpKey('digit','2')">2</button>
+        <button class="ckey" onclick="hpKey('digit','3')">3</button>
+        <button class="ckey op" onclick="hpKey('op','−')">−</button>
+
+        <button class="ckey warn" onclick="hpKey('clx')">CLx</button>
+        <button class="ckey" onclick="hpKey('digit','0')">0</button>
+        <button class="ckey" onclick="hpKey('digit','.')">,</button>
+        <button class="ckey enter" onclick="hpKey('enter')">ENTER↑</button>
+        <button class="ckey op" onclick="hpKey('op','+')">+</button>
+
+        <button class="ckey blue" onclick="hpKey('inv')">1/x</button>
+        <button class="ckey blue" onclick="hpKey('pct')">%</button>
+        <button class="ckey blue" onclick="hpKey('sqrt')">√x</button>
+        <button class="ckey blue" id="hp-beg-btn" onclick="hpKey('begin')">END</button>
+        <button class="ckey warn" onclick="hpKey('ac')">AC</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== FIREBASE (ranking em tempo real, compartilhado entre todos) ===== -->
@@ -1070,6 +1161,7 @@ function avInner(p){
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);el.classList.add('active');el.scrollTop=0;}
 function go(id){showScreen(id);document.getElementById('nav').style.display='flex';
+  var _fab=document.getElementById('calc-fab');if(_fab)_fab.style.display='flex';
   ['home','learn','duel','rank','prof'].forEach(k=>{var e=document.getElementById('nav-'+k);if(e)e.classList.remove('active');});
   if(id==='home'){document.getElementById('nav-home').classList.add('active');refreshHome();}
   if(id==='learn'){document.getElementById('nav-learn').classList.add('active');renderLearn();}
@@ -1697,5 +1789,190 @@ setTimeout(onFB,800); // caso o Firebase já esteja pronto
 </script>
 <script>/* liga renderTime ao abrir a tela */
 (function(){const _go=go;window.go=function(id){_go(id);if(id==='timepicker')renderTime();};})();</script>
+
+<!-- ===== LÓGICA DA CALCULADORA HP-12C (RPN + financeira) ===== -->
+<script>
+(function(){
+  let hpStack=[0,0,0,0]; // X,Y,Z,T
+  let hpStackLift=true;
+  let hpNewEntry=true;
+  let hpBuffer='0';
+  let hpMem=new Array(10).fill(0);
+  let hpTvm={n:0,i:0,pv:0,pmt:0,fv:0};
+  let hpKnown={n:false,i:false,pv:false,pmt:false,fv:false};
+  let hpBegin=false;
+  let hpWaitingReg=null; // 'STO' | 'RCL'
+  let hpError=false;
+
+  window.openCalc=function(){document.getElementById('calc-overlay').classList.add('show');hpRender();};
+  window.closeCalc=function(){document.getElementById('calc-overlay').classList.remove('show');};
+
+  function fmtNum(x){
+    if(!isFinite(x))return'Error';
+    let neg=x<0;let ax=Math.abs(x);
+    if(ax>999999999999)return'Error';
+    let s=ax.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+    let parts=s.split('.');
+    let ip=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    let out=ip+(parts[1]?','+parts[1]:'');
+    return(neg?'-':'')+out;
+  }
+  function fmtBuffer(){
+    let neg=hpBuffer.startsWith('-');
+    let s=neg?hpBuffer.slice(1):hpBuffer;
+    let parts=s.split('.');
+    let ip=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    let out=ip+(parts.length>1?','+parts[1]:'');
+    return(neg?'-':'')+out;
+  }
+  function hpRender(){
+    const lcd=document.getElementById('hp-lcd');
+    let text;
+    if(hpError){text='Error';}
+    else if(hpWaitingReg){text=(hpWaitingReg==='STO'?'STO ':'RCL ')+'_';}
+    else if(!hpNewEntry){text=fmtBuffer();}
+    else{text=fmtNum(hpStack[0]);}
+    lcd.textContent=text;
+    document.getElementById('hp-beg').style.display=hpBegin?'inline-block':'none';
+    const begBtn=document.getElementById('hp-beg-btn');
+    if(begBtn){begBtn.textContent=hpBegin?'BEG':'END';begBtn.classList.toggle('on',hpBegin);}
+    ['n','i','pv','pmt','fv'].forEach(k=>{
+      const el=document.getElementById('hp-reg-'+k);
+      if(el){el.textContent=hpKnown[k]?fmtNum(hpTvm[k]):'—';el.classList.toggle('known',hpKnown[k]);}
+    });
+  }
+
+  function liftIfNeeded(){
+    if(hpStackLift){hpStack[3]=hpStack[2];hpStack[2]=hpStack[1];hpStack[1]=hpStack[0];}
+  }
+  function doDigit(d){
+    if(hpWaitingReg){
+      const n=parseInt(d,10);
+      if(isNaN(n)||n<0||n>9){hpWaitingReg=null;hpRender();return;}
+      if(hpWaitingReg==='STO'){hpMem[n]=hpStack[0];}
+      else{
+        liftIfNeeded();
+        hpStack[0]=hpMem[n];hpNewEntry=true;hpStackLift=true;hpBuffer=String(hpMem[n]);
+      }
+      hpWaitingReg=null;hpRender();return;
+    }
+    if(hpNewEntry){liftIfNeeded();hpBuffer='0';hpNewEntry=false;}
+    if(d==='.'){if(!hpBuffer.includes('.'))hpBuffer+='.';}
+    else{
+      const cur=hpBuffer.startsWith('-')?hpBuffer.slice(1):hpBuffer;
+      if(cur.replace('.','').length>=10)return;
+      if(hpBuffer==='0')hpBuffer=d;else if(hpBuffer==='-0')hpBuffer='-'+d;else hpBuffer+=d;
+    }
+    hpStack[0]=parseFloat(hpBuffer)||0;
+    hpRender();
+  }
+  function doEnter(){
+    hpStack[3]=hpStack[2];hpStack[2]=hpStack[1];hpStack[1]=hpStack[0];
+    hpNewEntry=true;hpStackLift=false;hpBuffer='0';hpRender();
+  }
+  function doChs(){
+    if(!hpNewEntry){
+      if(hpBuffer.startsWith('-'))hpBuffer=hpBuffer.slice(1);else hpBuffer='-'+hpBuffer;
+      hpStack[0]=parseFloat(hpBuffer)||0;
+    }else{hpStack[0]=-hpStack[0];}
+    hpRender();
+  }
+  function doOp(op){
+    const y=hpStack[1],x=hpStack[0];let r;
+    if(op==='+')r=y+x;else if(op==='−')r=y-x;else if(op==='×')r=y*x;
+    else if(op==='÷'){if(x===0){hpError=true;hpRender();return;}r=y/x;}
+    hpStack[0]=r;hpStack[1]=hpStack[2];hpStack[2]=hpStack[3];
+    hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();
+  }
+  function doPct(){
+    hpStack[0]=hpStack[1]*hpStack[0]/100;
+    hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();
+  }
+  function doInv(){
+    if(hpStack[0]===0){hpError=true;hpRender();return;}
+    hpStack[0]=1/hpStack[0];hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();
+  }
+  function doSqrt(){
+    if(hpStack[0]<0){hpError=true;hpRender();return;}
+    hpStack[0]=Math.sqrt(hpStack[0]);hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();
+  }
+  function doClx(){hpStack[0]=0;hpBuffer='0';hpNewEntry=true;hpStackLift=false;hpRender();}
+  function doAc(){
+    hpStack=[0,0,0,0];hpBuffer='0';hpNewEntry=true;hpStackLift=true;
+    hpMem=new Array(10).fill(0);hpTvm={n:0,i:0,pv:0,pmt:0,fv:0};
+    hpKnown={n:false,i:false,pv:false,pmt:false,fv:false};hpBegin=false;hpWaitingReg=null;hpError=false;
+    hpRender();
+  }
+  function annuityFactor(nn,ii,type){if(ii===0)return nn;return((Math.pow(1+ii,nn)-1)/ii)*(1+ii*type);}
+  function solveTVM(target){
+    const n=hpTvm.n,pv=hpTvm.pv,pmt=hpTvm.pmt,fv=hpTvm.fv,i=hpTvm.i/100;
+    const type=hpBegin?1:0;
+    if(target==='fv'){
+      if(i===0)return -(pv+pmt*n);
+      return -(pv*Math.pow(1+i,n)+pmt*annuityFactor(n,i,type));
+    }
+    if(target==='pv'){
+      if(i===0)return -(fv+pmt*n);
+      return -(fv+pmt*annuityFactor(n,i,type))/Math.pow(1+i,n);
+    }
+    if(target==='pmt'){
+      if(i===0)return -(pv+fv)/n;
+      const af=annuityFactor(n,i,type);
+      if(af===0)throw 0;
+      return -(pv*Math.pow(1+i,n)+fv)/af;
+    }
+    if(target==='n'){
+      if(i===0){if(pmt===0)throw 0;return -(pv+fv)/pmt;}
+      const K=pmt*(1+i*type)/i;
+      const numer=K-fv,denom=pv+K;
+      if(denom===0||numer/denom<=0)throw 0;
+      return Math.log(numer/denom)/Math.log(1+i);
+    }
+    if(target==='i'){
+      function f(ii){if(ii===0)return pv+pmt*n+fv;return pv*Math.pow(1+ii,n)+pmt*annuityFactor(n,ii,type)+fv;}
+      let i0=0.001,i1=0.1,f0=f(i0),f1=f(i1);
+      for(let k=0;k<100;k++){
+        if(Math.abs(f1-f0)<1e-14)break;
+        const i2=i1-f1*(i1-i0)/(f1-f0);
+        i0=i1;f0=f1;i1=i2;f1=f(i1);
+        if(Math.abs(f1)<1e-9)break;
+      }
+      if(!isFinite(i1)||i1<=-1)throw 0;
+      return i1*100;
+    }
+  }
+  function doTvm(key){
+    hpWaitingReg=null;
+    if(!hpNewEntry){
+      hpTvm[key]=hpStack[0];hpKnown[key]=true;
+      hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();return;
+    }
+    const others=['n','i','pv','pmt','fv'].filter(k=>k!==key);
+    if(!others.every(k=>hpKnown[k])){hpError=true;hpRender();return;}
+    let result;
+    try{result=solveTVM(key);}catch(e){hpError=true;hpRender();return;}
+    if(!isFinite(result)){hpError=true;hpRender();return;}
+    hpTvm[key]=result;hpKnown[key]=true;
+    hpStack[0]=result;hpNewEntry=true;hpStackLift=true;hpBuffer='0';hpRender();
+  }
+
+  window.hpKey=function(action,val){
+    if(hpError&&action!=='ac'){hpError=false;}
+    if(action==='digit')doDigit(val);
+    else if(action==='enter')doEnter();
+    else if(action==='chs')doChs();
+    else if(action==='op')doOp(val);
+    else if(action==='pct')doPct();
+    else if(action==='inv')doInv();
+    else if(action==='sqrt')doSqrt();
+    else if(action==='clx')doClx();
+    else if(action==='ac')doAc();
+    else if(action==='sto'){hpWaitingReg='STO';hpRender();}
+    else if(action==='rcl'){hpWaitingReg='RCL';hpRender();}
+    else if(action==='tvm')doTvm(val);
+    else if(action==='begin'){hpBegin=!hpBegin;hpRender();}
+  };
+})();
+</script>
 </body>
 </html> 
