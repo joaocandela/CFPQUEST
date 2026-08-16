@@ -1248,14 +1248,23 @@ function refreshHome(){document.getElementById('t-streak').textContent=S.streak;
     const unlocked=idx===0||S.completed.includes(MODULES[idx-1].id);const curr=unlocked&&!done;
     const st=done?'done':(curr?'cur':'lock');const n=document.createElement('div');n.className='node';
     n.innerHTML=`<div class="circle ${st}">${done?'⭐':(st==='lock'?'🔒':m.emoji)}${idx<MODULES.length-1?'<span class="connector"></span>':''}</div>
-      <div class="info"><b>Mundo ${m.id} · ${m.nome}</b><small>${m.questions.length} questões ${done?'· concluído ✅':(curr?'· começar':'· bloqueado')}</small>
+      <div class="info"><b>Mundo ${m.id} · ${m.nome}</b><small>${m.questions.length} questões ${done?'· concluído ✅':((S.activeLesson&&S.activeLesson.mod===m.id)?'· continuar ▶️ ('+S.activeLesson.qi+'/'+m.questions.length+')':(curr?'· começar':'· bloqueado'))}</small>
       <div class="mini"><i style="width:${done?100:0}%"></i></div></div>`;
     n.onclick=unlocked?()=>startLesson(m.id):()=>toast('🔒 Conclua o mundo anterior');t.appendChild(n);});}
 
 /* LESSON */
+function saveLessonProgress(){
+  if(cur && cur.mod){
+    S.activeLesson = {mod:cur.mod.id, qi:cur.qi, correct:cur.correct};
+    save();
+  }
+}
 function startLesson(id){if(S.hearts<1){showScreen('nolife');document.getElementById('nav').style.display='none';return;}
-  cur={mod:MODULES.find(m=>m.id===id),qi:0,correct:0,sel:null,answered:false,used5050:false};
-  showScreen('lesson');document.getElementById('nav').style.display='none';renderQuestion();}
+  const saved = (S.activeLesson && S.activeLesson.mod===id) ? S.activeLesson : null;
+  cur={mod:MODULES.find(m=>m.id===id),qi:saved?saved.qi:0,correct:saved?saved.correct:0,sel:null,answered:false,used5050:false};
+  showScreen('lesson');document.getElementById('nav').style.display='none';
+  if(saved)toast('▶️ Retomando de onde você parou!');
+  renderQuestion();}
 function renderQuestion(){const m=cur.mod,q=m.questions[cur.qi];cur.sel=null;cur.answered=false;cur.used5050=false;
   document.getElementById('l-hearts').textContent=Math.round(S.hearts);
   document.getElementById('l-prog').style.width=(cur.qi/m.questions.length*100)+'%';
@@ -1292,7 +1301,8 @@ function checkAnswer(){const q=cur.mod.questions[cur.qi];cur.answered=true;
     S.hearts=Math.max(0,S.hearts-1);document.getElementById('l-hearts').textContent=Math.round(S.hearts);
     const eq={tag:q.tag,q:q.q,opts:q.opts,a:q.a,why:q.why,mod:cur.mod.id};
     if(!S.errors.some(e=>e.q===q.q))S.errors.push(eq);save();setTimeout(()=>openReview(q),450);}}
-function nextQuestion(){cur.qi++;if(cur.qi>=cur.mod.questions.length){finishLesson();return;}
+function nextQuestion(){cur.qi++;saveLessonProgress();
+  if(cur.qi>=cur.mod.questions.length){finishLesson();return;}
   if(S.hearts<1){showScreen('nolife');document.getElementById('nav').style.display='none';return;}renderQuestion();}
 function openReview(q){document.getElementById('rev-qtext').textContent=q.q;
   document.getElementById('rev-answer').textContent=q.opts[q.a];document.getElementById('rev-why').textContent='💡 '+q.why;
@@ -1309,13 +1319,13 @@ function checkReview(){const q=cur.mod.questions[cur.qi];const opts=document.que
   else{opts[cur.revSel].classList.add('bad');toast('Fica na Caixa de Erros 🔁');}save();
   setTimeout(()=>{document.getElementById('rev-overlay').classList.remove('show');S.hearts=Math.round(S.hearts);
     document.getElementById('l-hearts').textContent=Math.round(S.hearts);},900);}
-function finishLesson(){playSound('victory');const total=cur.mod.questions.length,gained=cur.correct*2;
+function finishLesson(){playSound('victory');S.activeLesson=null;const total=cur.mod.questions.length,gained=cur.correct*2;
   S.lessons++;if(!S.completed.includes(cur.mod.id))S.completed.push(cur.mod.id);
   S.progress[cur.mod.id]=(S.progress[cur.mod.id]||0)+2;save();
   document.getElementById('d-diam').textContent=gained;
   document.getElementById('d-acc').textContent=Math.round(cur.correct/total*100);
   document.getElementById('d-streak').textContent=S.streak;showScreen('done');checkBadges();}
-function quitLesson(){if(confirm('Sair da lição?'))go('home');}
+function quitLesson(){saveLessonProgress();go('home');}
 
 /* SEM VIDAS / REVISÃO DE ERROS */
 function startErrorReview(){if(!S.errors||S.errors.length===0){
