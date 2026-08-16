@@ -464,6 +464,7 @@
       <div id="premium-cta" style="display:none;margin-bottom:14px;"><button class="btn gold" onclick="go('plans')">👑 Vire Premium — estude sem limites</button></div>
       <button class="btn ghost sm" onclick="go('timepicker')" style="margin-bottom:16px;">⏱️ Alterar minha meta diária (<span id="p-goal">10</span> XP)</button>
       <button class="btn ghost sm" id="sound-toggle-btn" onclick="toggleSound()" style="margin-bottom:16px;">🔊 Sons: ligados</button>
+      <button class="btn ghost sm" id="calc-toggle-btn" onclick="toggleCalcVisibility()" style="margin-bottom:16px;">🖩 Calculadora HP-12C: visível</button>
       <div class="sec-title">Conquistas</div><div class="badges" id="badges"></div>
       <div style="margin-top:22px;"><button class="btn ghost" onclick="logout()">Sair da conta</button></div>
       <div style="margin-top:10px;"><button class="btn ghost" onclick="deleteAccount()" style="color:var(--vermelho);border-color:#ffd5d5;box-shadow:0 4px 0 #ffd5d5;">🗑️ Excluir minha conta</button></div>
@@ -1160,8 +1161,18 @@ function avInner(p){
 
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=document.getElementById(id);el.classList.add('active');el.scrollTop=0;}
+function isCalcHidden(){return localStorage.getItem('cfpquest_calcHidden')==='1';}
+function toggleCalcVisibility(){
+  const hidden=!isCalcHidden();
+  localStorage.setItem('cfpquest_calcHidden',hidden?'1':'0');
+  const fab=document.getElementById('calc-fab');
+  if(fab)fab.style.display=hidden?'none':'flex';
+  const b=document.getElementById('calc-toggle-btn');
+  if(b)b.textContent=hidden?'🖩 Calculadora HP-12C: oculta':'🖩 Calculadora HP-12C: visível';
+  if(hidden)closeCalc();
+}
 function go(id){showScreen(id);document.getElementById('nav').style.display='flex';
-  var _fab=document.getElementById('calc-fab');if(_fab)_fab.style.display='flex';
+  var _fab=document.getElementById('calc-fab');if(_fab)_fab.style.display=isCalcHidden()?'none':'flex';
   ['home','learn','duel','rank','prof'].forEach(k=>{var e=document.getElementById('nav-'+k);if(e)e.classList.remove('active');});
   if(id==='home'){document.getElementById('nav-home').classList.add('active');refreshHome();}
   if(id==='learn'){document.getElementById('nav-learn').classList.add('active');renderLearn();}
@@ -1649,6 +1660,7 @@ function renderProfile(){const pin=document.getElementById('p-init');
   document.getElementById('p-streak').textContent=S.streak;document.getElementById('p-done').textContent=S.completed.length+'/8';
   document.getElementById('p-goal').textContent=S.goal;
   const sb=document.getElementById('sound-toggle-btn');if(sb)sb.textContent=S.soundOff?'🔇 Sons: desligados':'🔊 Sons: ligados';
+  const cb=document.getElementById('calc-toggle-btn');if(cb)cb.textContent=isCalcHidden()?'🖩 Calculadora HP-12C: oculta':'🖩 Calculadora HP-12C: visível';
   document.getElementById('premium-cta').style.display=isPaid()?'block':'none';
   const b=document.getElementById('badges');b.innerHTML='';
   BADGES.forEach(bd=>{const on=bd.chk(S);const d=document.createElement('div');d.className='badge '+(on?'on':'off');d.innerHTML=`<span class="e">${bd.e}</span>${bd.t}`;b.appendChild(d);});}
